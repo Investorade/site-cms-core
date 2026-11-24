@@ -1,5 +1,10 @@
 # Release notes
 
+## 1.2.0 (2026-11-24)
+
+Adds a short README to each site's `cms/` folder, saying what the three files are for and that the result
+(`/admin/config.yml`) is made when the site builds. The update writes the file itself; nothing else changes on the site.
+
 ## 1.1.1 (2026-11-24)
 
 Blog posts are read the same way whatever line endings their file has. Before, a post saved with Windows line endings

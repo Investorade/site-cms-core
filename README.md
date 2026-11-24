@@ -73,3 +73,11 @@ build). Don't keep a `public/admin/config.yml`: the build stops if there is one.
 1. Change `src/`, then `npm run build` (the compiled `dist/` is committed, so sites need no build step for the core).
 2. Test against a site: `npm pack`, then in the site `npm install --no-save <path to the .tgz>` and build it.
 3. Bump `version` in package.json, add the release notes to CHANGELOG.md, commit, and tag `v<version>`.
+4. If the release needs more than the version change, describe it in `releases.json` (read from main by the Updates
+   pages, so it can be corrected later):
+   - `"oneWay": true` and a `"why"`: sites can't go back below this version afterwards.
+   - `"steps"`: simple changes to each site's files, made in the update's commit: `{ "move": "a", "to": "b" }`,
+     `{ "delete": "a" }`, `{ "create": "a", "contents": "…" }` (only if missing), `{ "setJson": "a.json", "key": "x.y",
+     "value": … }`. Each must be safe to repeat; such a release is one-way too.
+   - `"needsDeveloper": "why"`: not offered in the CMS; a developer updates each site.
+   Anything a step can't express needs a developer. Prefer keeping the core able to read both the old and the new format.
