@@ -16,6 +16,30 @@ import type { AstroIntegration } from 'astro';
 type Obj = Record<string, unknown>;
 /** The site's CMS config as data. `root` is the site's folder. */
 export declare function readCmsConfig(root: string): Obj;
+export type SiteType = 'park' | 'business';
+export interface SiteProfile {
+    site_type: SiteType;
+    features: {
+        blog: boolean;
+        popups: boolean;
+        ai_connector: boolean;
+    };
+    wording: Record<string, string>;
+}
+/**
+ * The site's cms/features.yml: its type and which shared parts it uses. Without the file a site is a "business" site
+ * with the blog and the AI connector and without pop-ups. (Sites made before 1.3.0 get the file from the 1.3.0
+ * update, as "park" sites.)
+ *
+ *   site_type: park            # park | business: the examples in the CMS's hints
+ *   features:
+ *     blog: true               # the Blog collection
+ *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
+ *     ai_connector: true       # Site settings → AI connector
+ *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
+ *     image_alt_example: "…"
+ */
+export declare function readSiteProfile(root: string): SiteProfile;
 /** The site's /admin/config.yml as text. */
 export declare function cmsConfigYaml(root: string): string;
 /** Serves /admin/config.yml in dev, checks it before the build and writes it to dist/admin/config.yml after. */

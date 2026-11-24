@@ -8,7 +8,7 @@
 
 backend:
   name: github
-  # Editors sign in with their Google account through the Dad's Campgrounds CMS login (cms.dadscampgrounds.com, repo
+  # Editors sign in with their Google account through the Investorade CMS login (cms.dadscampgrounds.com, repo
   # Investorade/dadscampgrounds-cms-auth). The button reads "Sign In with Google" (the shared CMS kit, loaded in admin/index.html). Who can edit is
   # managed at https://cms.dadscampgrounds.com/admin, where this site and every address the CMS is opened on are listed.
   # All of the CMS's GitHub calls go through that login (api_root), which saves with the CMS GitHub App.

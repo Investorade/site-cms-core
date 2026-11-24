@@ -6,7 +6,7 @@ image:
   - name: alt
     label: Alt text
     required: false
-    hint: "Describe what the image shows in a few words, e.g. “RV parked under pine trees at Henderson RV Park”. Google (image search) and screen readers use it. Leave empty only for purely decorative images."
+    hint: "Describe what the image shows in a few words, e.g. “[[image_alt_example]]”. Google (image search) and screen readers use it. Leave empty only for purely decorative images."
   - { name: width, label: Width (px), widget: number, required: false }
   - { name: height, label: Height (px), widget: number, required: false }
 
@@ -15,4 +15,4 @@ button:
   - { name: label, label: Label }
   - name: link
     label: Link
-    hint: 'A page URL (e.g. /pricing/), a full URL, or #book-now to open the Book Now popup.'
+    hint: 'A page URL (e.g. /pricing/), a full URL[[or_popup_link]].'

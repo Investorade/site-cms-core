@@ -1,7 +1,12 @@
 import site from '@site/data/site.json';
-import popups from '@site/data/popups.json';
+// The site's pop-ups (src/data/popups.json), or none: a site without pop-ups has no such file.
+import popups from 'virtual:site-cms-core/popups';
 
-const popupIds = new Set([popups.book_now.id, popups.exit_intent.id]);
+const popupIds = new Set(
+	Object.values(popups)
+		.map((p) => (p && typeof p === 'object' ? (p as { id?: unknown }).id : undefined))
+		.filter((id): id is string => typeof id === 'string' && !!id),
+);
 
 /**
  * Attributes for a CMS-entered link.

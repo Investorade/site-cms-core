@@ -92,14 +92,14 @@ files:
     label: AI connector (MCP)
     icon: smart_toy
     file: src/data/ai.json
-    description: "Lets invited people connect their own AI app (Claude, ChatGPT…) to this site's pages and blog posts. Who may use it is set by a Dad's Campgrounds admin (AI access per team or person). Step-by-step setup is on this page."
+    description: "Lets invited people connect their own AI app (Claude, ChatGPT…) to this site's pages and blog posts. Who may use it is set by a CMS admin (AI access per team or person). Step-by-step setup is on this page."
     fields:
       - name: enabled
         label: AI connector
         widget: boolean
         default: true
         after_input: "On: people with AI access can connect their AI app to this site"
-        hint: "Off stops every AI connection to this site at once (within a minute). On gives nobody access by itself: who may connect is set by a Dad's Campgrounds admin. The AI works on pages and blog posts; people an admin gave “Site settings too” can also have it change menus, redirects and Site settings (never the site address, tracking, logos or where form leads go). Deleting needs an approver's OK."
+        hint: "Off stops every AI connection to this site at once (within a minute). On gives nobody access by itself: who may connect is set by a CMS admin. The AI works on pages and blog posts; people an admin gave “Site settings too” can also have it change menus, redirects and Site settings (never the site address, tracking, logos or where form leads go). Deleting needs an approver's OK."
   - name: redirects
     label: Redirects
     icon: alt_route
@@ -150,10 +150,10 @@ files:
         widget: list
         required: false
         summary: "{{label}}"
-        hint: "A button to a page that doesn't exist yet is left out automatically. Use #book-now to open the Book Now popup."
+        hint: "A button to a page that doesn't exist yet is left out automatically.[[popup_link_sentence]]"
         fields:
           - { name: label, label: Label }
-          - { name: link, label: Link, hint: "A page (/contact/), a full URL or #book-now." }
+          - { name: link, label: Link, hint: "A page (/contact/)[[link_choices]]." }
       - { name: show_popular_pages, label: Show popular pages, widget: boolean, default: true, required: false, hint: "Links to the pages in the main menu that exist on the site." }
       - { name: popular_heading, label: Popular pages heading, default: Popular pages, required: false }
       - { name: show_contact, label: Show phone and email, widget: boolean, default: true, required: false, hint: "From Site settings → Site info." }

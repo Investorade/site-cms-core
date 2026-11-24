@@ -1,6 +1,6 @@
 # site-cms-core
 
-The shared, versioned CMS core for Investorade sites (Astro + Sveltia CMS). Any kind of site can use it, not only RV parks.
+The shared, versioned CMS core for Investorade sites (Astro + Sveltia CMS). Any kind of site can use it, not only RV parks (`cms/features.yml`: site type and features).
 
 Each site keeps its own design, content and CMS (at its own `/admin`) in its own repo, and uses one version of this core through
 `package.json`. A new release shows up as an available update for every site in the admin panel (cms.dadscampgrounds.com/admin),
@@ -67,6 +67,23 @@ build). Don't keep a `public/admin/config.yml`: the build stops if there is one.
 
 `fields: !core image` (or `!core button`) uses a shared field set, in core and site files alike. `readCmsConfig(root)` and
 `cmsConfigYaml(root)` (from `@investorade/site-cms-core`) give the result as data or text.
+
+## Site type and features
+
+`cms/features.yml` in the site (optional; without it a site is a `business` site with the blog and the AI connector, and
+no pop-ups):
+
+```yaml
+site_type: park            # park | business: the examples in the CMS hints (cms/wording.yml)
+features:
+  blog: true               # the Blog collection
+  popups: true             # Book Now / exit pop-ups: #book-now in link hints
+  ai_connector: true       # Site settings → AI connector
+wording:                   # optional: the site's own examples
+  keyword_example: "med spa Dallas, Botox Dallas"
+```
+
+The examples use {name}, {city} and {region} from the site's `src/data/site.json`.
 
 ## Making a release
 

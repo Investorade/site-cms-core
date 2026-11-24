@@ -11,7 +11,7 @@ create: true
 slug: '{{slug}}'
 identifier_field: title
 summary: '{{title}}'
-description: "Each post is at the site root, e.g. /top-rv-parks-in-henderson-tx/ (as on WordPress); the list is at /blog/. The list itself is the Blog page under Pages (heading, intro, photo, paging, sidebar card)."
+description: "Each post is at the site root, e.g. [[post_address_example]] (as on WordPress); the list is at /blog/. The list itself is the Blog page under Pages (heading, intro, photo, paging, sidebar card)."
 thumbnail: image.src
 table_columns:
   - title
@@ -60,7 +60,7 @@ fields:
     fields:
       - { name: title, label: SEO title, required: false, hint: "Shown in the browser tab and as the link in Google. At most 60 characters (about 580 px), starting with the main keyword. Leave empty to use the title followed by the site name." }
       - { name: description, label: Meta description, widget: text, required: false, hint: "The text under the link in Google. At most 160 characters (about 920 px), with the main keyword. Leave empty to use the excerpt (or the start of the post)." }
-      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “Henderson RV Park, RV park in Henderson TX”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
+      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “[[keyword_example]]”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
   - name: advanced
     label: Advanced
     widget: object

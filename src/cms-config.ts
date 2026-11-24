@@ -90,12 +90,103 @@ export function readCmsConfig(root: string): Obj {
 		names.add(String(file.name));
 	}
 
-	return {
+	// What this site uses (cms/features.yml): the blog and the AI connector settings only when switched on.
+	const profile = readSiteProfile(root);
+	if (!profile.features.ai_connector) settings.files = (settings.files as Obj[]).filter((f) => f.name !== 'ai');
+
+	const config = {
 		...base,
 		backend: { ...(base.backend as Obj), ...siteBackend },
 		...siteTop,
-		collections: [pages, posts, ...siteCollections, { divider: true }, settings],
+		collections: [pages, ...(profile.features.blog ? [posts] : []), ...siteCollections, { divider: true }, settings],
 	};
+	return fillWording(config, wordingFor(root, profile)) as Obj;
+}
+
+// ── Site type, features and wording ──
+
+export type SiteType = 'park' | 'business';
+export interface SiteProfile {
+	site_type: SiteType;
+	features: { blog: boolean; popups: boolean; ai_connector: boolean };
+	wording: Record<string, string>;
+}
+
+/**
+ * The site's cms/features.yml: its type and which shared parts it uses. Without the file a site is a "business" site
+ * with the blog and the AI connector and without pop-ups. (Sites made before 1.3.0 get the file from the 1.3.0
+ * update, as "park" sites.)
+ *
+ *   site_type: park            # park | business: the examples in the CMS's hints
+ *   features:
+ *     blog: true               # the Blog collection
+ *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
+ *     ai_connector: true       # Site settings → AI connector
+ *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
+ *     image_alt_example: "…"
+ */
+export function readSiteProfile(root: string): SiteProfile {
+	const file = path.join(root, 'cms', 'features.yml');
+	const raw = (fs.existsSync(file) ? readYaml(file) : {}) as Obj | null;
+	if (raw !== null && !isObj(raw)) throw new Error('cms/features.yml must hold settings (site_type:, features: …), not a list.');
+	const data = raw ?? {};
+	const type = data.site_type ?? 'business';
+	if (type !== 'park' && type !== 'business') throw new Error(`cms/features.yml: site_type must be park or business, not "${String(type)}".`);
+	const features = (data.features ?? {}) as Obj;
+	if (!isObj(features)) throw new Error('cms/features.yml: features must be a list of switches (blog: true …).');
+	for (const [key, value] of Object.entries(features)) {
+		if (!['blog', 'popups', 'ai_connector'].includes(key)) throw new Error(`cms/features.yml: unknown feature "${key}" (there are blog, popups, ai_connector).`);
+		if (typeof value !== 'boolean') throw new Error(`cms/features.yml: ${key} must be true or false.`);
+	}
+	const wording = (data.wording ?? {}) as Obj;
+	if (!isObj(wording) || Object.values(wording).some((v) => typeof v !== 'string')) throw new Error('cms/features.yml: wording must map names to texts.');
+	return {
+		site_type: type,
+		features: {
+			blog: features.blog !== false,
+			popups: typeof features.popups === 'boolean' ? features.popups : type === 'park',
+			ai_connector: features.ai_connector !== false,
+		},
+		wording: wording as Record<string, string>,
+	};
+}
+
+const slug = (v: string) => v.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+/** The texts for [[name]] in the core's CMS files: the type's examples (cms/wording.yml), the site's own, and the
+ * feature-dependent bits. {name}, {city} and {region} in them come from the site's src/data/site.json. */
+function wordingFor(root: string, profile: SiteProfile): Record<string, string> {
+	const table = readYaml(path.join(coreDir, 'wording.yml')) as Record<string, Record<string, string>>;
+	const popups = profile.features.popups;
+	const words: Record<string, string> = {
+		...table[profile.site_type],
+		...profile.wording,
+		or_popup_link: popups ? ', or #book-now to open the Book Now popup' : '',
+		popup_link_sentence: popups ? ' Use #book-now to open the Book Now popup.' : '',
+		link_choices: popups ? ', a full URL or #book-now' : ' or a full URL',
+	};
+	let info: { name?: string; address?: { city?: string; region?: string } } = {};
+	try {
+		info = JSON.parse(fs.readFileSync(path.join(root, 'src', 'data', 'site.json'), 'utf8'));
+	} catch {
+		// No site.json: the placeholders stay generic.
+	}
+	const city = info.address?.city || 'your city';
+	const region = info.address?.region || '';
+	const values: Record<string, string> = { name: info.name || 'your business', city, region, 'city-slug': slug(city), 'region-slug': slug(region) };
+	for (const key of Object.keys(words)) words[key] = words[key].replace(/\{([\w-]+)\}/g, (m, k: string) => values[k] ?? m).replace(/ +/g, ' ').replace(/-+\//g, '/');
+	return words;
+}
+
+function fillWording(value: unknown, words: Record<string, string>): unknown {
+	if (typeof value === 'string')
+		return value.replace(/\[\[([\w-]+)\]\]/g, (_, key: string) => {
+			if (!(key in words)) throw new Error(`The CMS core's config uses [[${key}]], which cms/wording.yml doesn't define.`);
+			return words[key];
+		});
+	if (Array.isArray(value)) return value.map((v) => fillWording(v, words));
+	if (isObj(value)) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, fillWording(v, words)]));
+	return value;
 }
 
 /** The site's /admin/config.yml as text. */

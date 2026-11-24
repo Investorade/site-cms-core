@@ -9,7 +9,8 @@ const DEFAULT_LIST: BlogListBlock = {
 	eyebrow: '',
 	heading: 'Blog',
 	posts_per_page: 10,
-	sidebar: { heading: 'Plan your stay', text: '', button_label: 'Book Now', button_link: '#book-now' },
+	// No sidebar card unless the Blog page sets one (Pages → Blog → Blog posts list).
+	sidebar: { heading: '', text: '', button_label: '', button_link: '' },
 };
 
 /** The Blog page's "Blog posts list" section (Pages → Blog): header, paging and the post sidebar card. */

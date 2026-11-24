@@ -1,6 +1,9 @@
 import site from '@site/data/site.json';
-import popups from '@site/data/popups.json';
-const popupIds = new Set([popups.book_now.id, popups.exit_intent.id]);
+// The site's pop-ups (src/data/popups.json), or none: a site without pop-ups has no such file.
+import popups from 'virtual:site-cms-core/popups';
+const popupIds = new Set(Object.values(popups)
+    .map((p) => (p && typeof p === 'object' ? p.id : undefined))
+    .filter((id) => typeof id === 'string' && !!id));
 /**
  * Attributes for a CMS-entered link.
  * - "#book-now" (any popup id) opens that popup.

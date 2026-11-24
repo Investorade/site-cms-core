@@ -8,6 +8,11 @@ declare module 'astro:content' {
 	export function render(entry: any): Promise<any>;
 }
 
+declare module 'virtual:site-cms-core/popups' {
+	const value: Record<string, { id?: string } | unknown>;
+	export default value;
+}
+
 declare module '@site/*' {
 	const value: any;
 	export default value;

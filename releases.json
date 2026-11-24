@@ -12,5 +12,13 @@
         "contents": "# CMS config (this site's part)\n\nThe CMS at /admin reads /admin/config.yml. That file is made when the site builds, from the shared CMS core\n(@investorade/site-cms-core) and the files in this folder. Edit these files, never the result:\n\n- `site.yml`: the GitHub repo, the CMS title and logo (and any core setting to override, or extra collections).\n- `sections.yml`: the page section types (\"Page sections\" on every page).\n- `settings.yml`: this site's own Site settings files, shown after the shared ones.\n\n`fields: !core image` and `fields: !core button` use the shared image and button fields.\n\nShared fields (page details, SEO, the blog, Site info, AI connector, Redirects, 404 page) are changed in the core,\nand reach this site as an update (CMS → Updates).\n"
       }
     ]
+  },
+  "1.3.0": {
+    "steps": [
+      {
+        "create": "cms/features.yml",
+        "contents": "# What this site uses from the shared CMS core (see the site-cms-core README, \"Site type and features\").\n# Added by the 1.3.0 update: sites made before it are parks with every feature on.\nsite_type: park\nfeatures:\n  blog: true\n  popups: true\n  ai_connector: true\n"
+      }
+    ]
   }
 }

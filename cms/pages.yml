@@ -51,7 +51,7 @@ fields:
     typeKey: _type
     collapsed: true
 
-  # ── SEO (park standard: the same three blocks on every park; see the README) ──
+  # ── SEO (the same three blocks on every site) ──
   - name: seo
     label: SEO
     widget: object
@@ -61,7 +61,7 @@ fields:
     fields:
       - { name: title, label: SEO title, required: false, hint: "Shown in the browser tab and as the link in Google. At most 60 characters (about 580 px), starting with the main keyword. Leave empty to use the title followed by the site name." }
       - { name: description, label: Meta description, widget: text, required: false, hint: "The text under the link in Google. At most 160 characters (about 920 px), with the main keyword. Leave empty and Google picks text from the page." }
-      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “Henderson RV Park, RV park in Henderson TX”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
+      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “[[keyword_example]]”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
 
   - name: social
     label: Social & Schema
