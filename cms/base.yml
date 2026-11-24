@@ -1,0 +1,33 @@
+# site-cms-core: the shared part of every site's CMS config (Sveltia CMS, https://sveltiacms.app/en/docs).
+#
+# Each site's /admin/config.yml is put together when the site builds (and by the dev server) from:
+#   this file + the site's cms/site.yml (repo, CMS title, logo; may override any key here)
+#   collections: pages.yml (with the site's cms/sections.yml as "Page sections"), posts.yml, the site's own
+#   collections (cms/site.yml → collections), a divider, then settings.yml + the site's cms/settings.yml.
+# `!core <name>` uses a shared field set from fields.yml (image, button), in the core's files and in the site's.
+
+backend:
+  name: github
+  # Editors sign in with their Google account through the Dad's Campgrounds CMS login (cms.dadscampgrounds.com, repo
+  # Investorade/dadscampgrounds-cms-auth). The button reads "Sign In with Google" (the shared CMS kit, loaded in admin/index.html). Who can edit is
+  # managed at https://cms.dadscampgrounds.com/admin, where this site and every address the CMS is opened on are listed.
+  # All of the CMS's GitHub calls go through that login (api_root), which saves with the CMS GitHub App.
+  base_url: https://cms.dadscampgrounds.com
+  api_root: https://cms.dadscampgrounds.com
+  auth_methods: [oauth]
+  # Uncomment to stop each save from triggering a Cloudflare build (saves build minutes; deploy later by pushing).
+  # skip_ci: true
+
+# No site_url: the CMS's "view site" link opens whichever address the CMS is on (the workers.dev test site, the
+# site's own domain, localhost when working locally).
+
+media_folder: public/uploads
+public_folder: /uploads
+
+output:
+  # Leave out optional fields that are empty, so the site's own defaults apply
+  # (e.g. an empty canonical URL falls back to the page URL).
+  omit_empty_optional_fields: true
+  yaml:
+    # Quote every string so values like 2023-02-15T16:17:17+00:00 stay text (unquoted, Astro reads them as dates).
+    quote: double

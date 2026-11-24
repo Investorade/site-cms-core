@@ -1,0 +1,160 @@
+# Site settings: the shared files (Site info, AI connector, Redirects, 404 page). The site's cms/settings.yml
+# adds its own files after these.
+
+name: settings
+label: Site settings
+icon: settings
+editor:
+  preview: false
+files:
+  - name: site
+    label: Site info
+    icon: info
+    file: src/data/site.json
+    fields:
+      - { name: name, label: Business name }
+      - { name: site_name, label: Site name (social sharing) }
+      - { name: site_description, label: Site description }
+      - { name: url, label: Site URL, type: url }
+      - name: discourage_search_engines
+        label: Search engine visibility
+        widget: boolean
+        after_input: Discourage search engines from indexing this site
+        default: false
+        hint: "When on, every page gets noindex, nofollow and the pages' own Robots settings are ignored (like the WordPress setting). The workers.dev test address is always hidden. Takes effect after the site rebuilds (about a minute)."
+      - { name: locale, label: OG locale, hint: 'e.g. en_US' }
+      - { name: language, label: Page language, hint: 'e.g. en-US' }
+      - { name: favicon, label: Favicon, widget: image }
+      - name: phone
+        label: Phone
+        widget: object
+        fields:
+          - { name: display, label: As shown }
+          - { name: href, label: Link, hint: 'e.g. tel:+19036037610' }
+      - { name: email, label: Email, type: email }
+      - name: address
+        label: Address
+        widget: object
+        fields:
+          - { name: display, label: As shown }
+          - { name: street, label: Street }
+          - { name: city, label: City }
+          - { name: region, label: State }
+          - { name: postal_code, label: ZIP code }
+          - { name: country, label: Country code }
+          - { name: maps_url, label: Google Maps link, type: url }
+      - { name: facebook_url, label: Facebook page, type: url }
+      - name: geo
+        label: Geo meta tags
+        widget: object
+        collapsed: true
+        fields:
+          - { name: placename, label: Place name }
+          - { name: region, label: Region }
+      - name: tracking
+        label: Tracking
+        widget: object
+        collapsed: true
+        fields:
+          - { name: gtm_id, label: Google Tag Manager ID, required: false }
+          - { name: google_ads_id, label: Google Ads ID, required: false }
+          - { name: ga4_id, label: Google Analytics 4 ID, required: false, pattern: ['^(G-[A-Z0-9]+)?$', 'Starts with G-, e.g. G-ABC123XYZ'], hint: "The Measurement ID (G-…) from GA4 → Admin → Data streams. Leave empty if GA4 is already set up as a tag inside Tag Manager, or every visit is counted twice." }
+          - { name: turnstile_site_key, label: Cloudflare Turnstile site key, required: false, hint: "The public site key of the shared Turnstile widget (starts with 0x…). Forms with “Spam check (Turnstile)” turned on use it; the secret key lives only in the forms service." }
+      - name: schema
+        label: Structured data (Schema.org)
+        widget: object
+        collapsed: true
+        hint: What search engines read about the business. Not shown on the page.
+        fields:
+          - { name: name, label: Name }
+          - { name: types, label: Types, widget: list, field: { name: type, label: Type } }
+          - { name: telephone, label: Telephone }
+          - { name: email, label: Email, type: email }
+          - { name: area_served, label: Area served }
+          - { name: same_as, label: Profiles (same as), widget: list, field: { name: url, label: URL, type: url } }
+          - name: opening_hours
+            label: Opening hours
+            widget: object
+            fields:
+              - { name: days, label: Days, widget: list, field: { name: day, label: Day } }
+              - { name: opens, label: Opens, hint: '24-hour time, e.g. 08:00' }
+              - { name: closes, label: Closes, hint: '24-hour time, e.g. 20:00' }
+          - name: logo
+            label: Logo
+            widget: object
+            fields:
+              - { name: src, label: Image, widget: image }
+              - { name: width, label: Width (px), widget: number }
+              - { name: height, label: Height (px), widget: number }
+              - { name: caption, label: Caption }
+
+  - name: ai
+    label: AI connector (MCP)
+    icon: smart_toy
+    file: src/data/ai.json
+    description: "Lets invited people connect their own AI app (Claude, ChatGPT…) to this site's pages and blog posts. Who may use it is set by a Dad's Campgrounds admin (AI access per team or person). Step-by-step setup is on this page."
+    fields:
+      - name: enabled
+        label: AI connector
+        widget: boolean
+        default: true
+        after_input: "On: people with AI access can connect their AI app to this site"
+        hint: "Off stops every AI connection to this site at once (within a minute). On gives nobody access by itself: who may connect is set by a Dad's Campgrounds admin. The AI works on pages and blog posts; people an admin gave “Site settings too” can also have it change menus, redirects and Site settings (never the site address, tracking, logos or where form leads go). Deleting needs an approver's OK."
+  - name: redirects
+    label: Redirects
+    icon: alt_route
+    file: src/data/redirects.json
+    fields:
+      - name: redirects
+        label: Redirects
+        label_singular: Redirect
+        widget: list
+        required: false
+        summary: "{{fields.from}} → {{fields.to}} ({{fields.status}})"
+        hint: "Send visitors and search engines from an old address to a new one. Applied when the site rebuilds (about a minute). If a redirect is broken, the build stops and the live site stays as it was. Each page's address without the trailing slash already redirects to the page, so you don't need to add those."
+        fields:
+          - name: from
+            label: From
+            hint: "The old address on this site, starting with /, e.g. /old-page/ (both /old-page and /old-page/ are redirected). No ?query strings. A * at the end matches everything below, e.g. /blog/*."
+          - name: to
+            label: To
+            hint: "A page on this site (/new-page/) or a full URL (https://…). With a * in From, :splat here is the matched part, e.g. /news/:splat."
+          - name: status
+            label: Type
+            widget: select
+            default: "301"
+            options:
+              - { label: "301 Permanent: the page has moved for good (use this for SEO)", value: "301" }
+              - { label: "302 Temporary: the old address will come back", value: "302" }
+              - { label: "307 Temporary, keeps form submissions", value: "307" }
+              - { label: "308 Permanent, keeps form submissions", value: "308" }
+          - { name: note, label: Note, required: false, hint: "For editors only, e.g. why the redirect exists. Not used by the site." }
+
+  - name: not-found
+    label: 404 page (page not found)
+    icon: error
+    file: src/data/not-found.json
+    fields:
+      - { name: heading, label: Heading, default: Page not found }
+      - { name: text, label: Text, widget: text, required: false }
+      - name: image
+        label: Background image
+        widget: object
+        required: false
+        hint: "Optional. Shown behind the heading with a dark tint (decorative, so it needs no alt text). Leave empty for a plain light background."
+        fields:
+          - { name: src, label: Image, widget: image, required: false }
+      - name: buttons
+        label: Buttons
+        label_singular: Button
+        widget: list
+        required: false
+        summary: "{{label}}"
+        hint: "A button to a page that doesn't exist yet is left out automatically. Use #book-now to open the Book Now popup."
+        fields:
+          - { name: label, label: Label }
+          - { name: link, label: Link, hint: "A page (/contact/), a full URL or #book-now." }
+      - { name: show_popular_pages, label: Show popular pages, widget: boolean, default: true, required: false, hint: "Links to the pages in the main menu that exist on the site." }
+      - { name: popular_heading, label: Popular pages heading, default: Popular pages, required: false }
+      - { name: show_contact, label: Show phone and email, widget: boolean, default: true, required: false, hint: "From Site settings → Site info." }
+      - { name: contact_text, label: Contact line, required: false, default: "Prefer to talk? We’re happy to help." }

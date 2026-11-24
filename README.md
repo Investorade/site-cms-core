@@ -12,7 +12,7 @@ and a site changes only when it is updated there.
 - Content rules and checks (one address per page, title-only requirement, redirects, sitemap, robots)
 - SEO tags and schema.org data, the blog engine, HTML cleaning, the forms check
 - The admin and AI connector routes for the site's Worker
-- The shared CMS kit version that matches each release
+- The shared CMS kit version that matches each release (planned)
 
 ## What stays in each site
 
@@ -47,6 +47,22 @@ export { default } from '@investorade/site-cms-core/worker';
 Components: `@investorade/site-cms-core/components/SEO.astro`, `.../SchemaOrg.astro`. Helpers: `@investorade/site-cms-core/lib/<name>`
 (blog, markdown, links, sanitize-html, text, seo-report, image-alt). The core reads the site's settings through the `@site/`
 alias (the site's `src/` folder), e.g. `@site/data/site.json`.
+
+## CMS config
+
+The site's `/admin/config.yml` is made by the core (served by the dev server, written to `dist/admin/config.yml` by the
+build). Don't keep a `public/admin/config.yml`: the build stops if there is one.
+
+| Core (`cms/`) | Site (`cms/`) |
+| --- | --- |
+| `base.yml`: sign-in (backend), media folders, output | `site.yml`: `backend.repo`, `app_title`, `logo`; may override any core key, and add `collections` (placed after the Blog) |
+| `pages.yml`: Pages, with the site's sections as "Page sections" | `sections.yml`: the page section types (a list) |
+| `posts.yml`: Blog | |
+| `settings.yml`: Site info, AI connector, Redirects, 404 page | `settings.yml`: the site's own Site settings files (a list, after the core's) |
+| `fields.yml`: shared field sets | |
+
+`fields: !core image` (or `!core button`) uses a shared field set, in core and site files alike. `readCmsConfig(root)` and
+`cmsConfigYaml(root)` (from `@investorade/site-cms-core`) give the result as data or text.
 
 ## Making a release
 

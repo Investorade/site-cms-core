@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
+import cmsConfig from './cms-config.ts';
 import contentRules, { type ContentRulesOptions } from './integrations/content-rules.ts';
 import formsCheck from './integrations/forms-check.ts';
 import seoFiles from './integrations/seo-files.ts';
@@ -13,6 +14,8 @@ import seoFiles from './integrations/seo-files.ts';
  *
  * - seo-files: _redirects (CMS redirects + trailing-slash 301s), sitemap.xml, image descriptions, SEO report.
  * - forms-check: validates each form's lead emails & webhooks and makes sure none of them reach the website.
+ * - cms-config: /admin/config.yml, the CMS config, from the core's cms/*.yml and the site's cms/*.yml (served by the dev
+ *   server, written by the build).
  * - content-rules: one address per page and post (before the build), and admin/content-rules.json (what pages and posts
  *   may contain, for the CMS's AI connector).
  *
@@ -20,6 +23,7 @@ import seoFiles from './integrations/seo-files.ts';
  * e.g. @site/data/site.json).
  */
 export type SiteCmsCoreOptions = ContentRulesOptions;
+export { readCmsConfig, cmsConfigYaml } from './cms-config.ts';
 
 function setup(): AstroIntegration {
 	return {
@@ -40,5 +44,5 @@ function setup(): AstroIntegration {
 }
 
 export default function siteCmsCore(options: SiteCmsCoreOptions): AstroIntegration[] {
-	return [setup(), seoFiles(), formsCheck(), contentRules(options)];
+	return [setup(), cmsConfig(), seoFiles(), formsCheck(), contentRules(options)];
 }

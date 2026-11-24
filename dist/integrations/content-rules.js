@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
+import { readCmsConfig } from "../cms-config.js";
 /**
  * Writes dist/admin/content-rules.json: what a page and a blog post may contain, for the CMS's AI connector
  * (dadscampgrounds-cms-auth, /admin/mcp on the park's address). It checks every page or post an AI writes against
@@ -10,7 +11,7 @@ import YAML from 'yaml';
  *
  * - `schema`: the front matter as JSON Schema, made from the same Zod schemas the site builds with
  *   (src/lib/content-schemas.ts).
- * - `cms`: the CMS fields from public/admin/config.yml (labels, hints, select options), so the AI knows what each
+ * - `cms`: the CMS fields from the CMS config (cms/*.yml) (labels, hints, select options), so the AI knows what each
  *   section and field is for, and select fields (icons, looks) only take the CMS's choices.
  * - Where things live: content folders, the media folder, the redirects and menu files, reserved addresses.
  * - `settings`: the Site settings files an AI may change (only for people given "Site settings too" by an admin), with
@@ -18,7 +19,7 @@ import YAML from 'yaml';
  *   (ai.json) is never in this list.
  */
 /**
- * Site settings an AI may change (by the settings entry's name in public/admin/config.yml), and what stays locked in
+ * Site settings an AI may change (by the settings entry's name in the CMS config (cms/*.yml)), and what stays locked in
  * each: dot paths, where * is any key or list item. Locked parts are kept as they are and hidden from the AI. Files
  * not listed here (ai.json above all) can't be changed by an AI.
  */
@@ -119,7 +120,7 @@ export default function contentRules({ schemas }) {
             'astro:build:done': ({ dir, logger }) => {
                 const root = process.cwd();
                 const outDir = fileURLToPath(dir);
-                const config = YAML.parse(fs.readFileSync(path.join(root, 'public/admin/config.yml'), 'utf8'));
+                const config = readCmsConfig(root);
                 const collection = (name) => config.collections.find((c) => c.name === name);
                 const cmsFields = (name) => (collection(name)?.fields ?? []).map(simplifyField);
                 const settingsFiles = (collection('settings')?.files ?? []).filter((f) => f.name !== 'ai' && AI_SETTINGS[String(f.name)]);

@@ -1,0 +1,98 @@
+# The Pages collection. "Page sections" (content_blocks) gets its section types from the site's cms/sections.yml.
+
+name: pages
+label: Pages
+label_singular: Page
+icon: description
+folder: src/content/pages
+extension: md
+format: frontmatter
+create: true
+slug: '{{slug}}'
+identifier_field: title
+summary: '{{title}}'
+# Page list: a table on desktop (list or grid on request), newest change first, with the share image as thumbnail.
+thumbnail: social.og_image.src
+table_columns:
+  - title
+  - { field: seo.description, label: Meta description }
+  - { field: draft, label: Draft }
+  - { field: advanced.hide_from_search, label: Hidden from search }
+  - { field: commit_date, label: Updated }
+  - { field: commit_author, label: Updated by }
+sortable_fields:
+  fields: [title, commit_date, slug]
+  default: { field: commit_date, direction: descending }
+view_filters:
+  - { label: Drafts, field: draft, pattern: true }
+  - { label: Hidden from search engines, field: advanced.hide_from_search, pattern: true }
+# The preview pane shows the live page at desktop or phone width (the shared CMS kit's "Quick Preview").
+editor:
+  preview: true
+fields:
+  # ── Page details ──
+  - name: title
+    label: Page name
+    hint: Internal page name, shown in the CMS. Also the social share title when "Share title" is empty. The address (URL slug) is edited with the pencil in the Slug panel.
+  - name: draft
+    label: Draft
+    widget: boolean
+    default: false
+    required: false
+    hint: "A draft has its own address (so the preview works) but is hidden from search engines and the sitemap. Don't link to it from the menu until it's published."
+
+  # ── Page sections ──
+  - name: content_blocks
+    label: Page sections
+    required: false
+    label_singular: Section
+    hint: "Each section is one band of the page, top to bottom. Drag the handle to reorder, use the ⋮ menu to duplicate, switch on “Hide this section” to take it off the page without deleting it."
+    widget: list
+    typeKey: _type
+    collapsed: true
+
+  # ── SEO (park standard: the same three blocks on every park; see the README) ──
+  - name: seo
+    label: SEO
+    widget: object
+    collapsed: false
+    required: false
+    hint: What Google shows for this page (optional). The CMS SEO page scores it after the site rebuilds.
+    fields:
+      - { name: title, label: SEO title, required: false, hint: "Shown in the browser tab and as the link in Google. At most 60 characters (about 580 px), starting with the main keyword. Leave empty to use the title followed by the site name." }
+      - { name: description, label: Meta description, widget: text, required: false, hint: "The text under the link in Google. At most 160 characters (about 920 px), with the main keyword. Leave empty and Google picks text from the page." }
+      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “Henderson RV Park, RV park in Henderson TX”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
+
+  - name: social
+    label: Social & Schema
+    widget: object
+    collapsed: false
+    hint: How the page looks when shared on Facebook, X and in messages. Also used in the page's schema.org data.
+    fields:
+      - { name: og_title, label: Share title, required: false, hint: Leave empty to use the Page name. }
+      - { name: og_type, label: Share type, required: false, default: website, hint: Normally "website". }
+      - { name: og_image, label: Share image, widget: object, required: false, collapsed: auto, fields: !core image, hint: "About 1200 × 630 px works best." }
+
+  - name: advanced
+    label: Advanced
+    widget: object
+    collapsed: false
+    fields:
+      - name: hide_from_search
+        label: Search engine visibility
+        widget: boolean
+        after_input: Hide this page from search engines
+        required: false
+        default: false
+        hint: "Adds noindex, follow to this page. When off, the Robots value below is used. Takes effect after the site rebuilds (about a minute)."
+      - name: canonical
+        label: Canonical URL
+        type: url
+        required: false
+        hint: Leave empty to use this page's own URL.
+      - name: robots
+        label: Robots
+        required: false
+        default: index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+      - { name: date_published, label: Date published, required: false, hint: 'ISO date, e.g. 2023-02-15T16:17:17+00:00' }
+      - { name: date_modified, label: Date modified, required: false, hint: 'ISO date, e.g. 2026-03-09T17:28:30+00:00' }

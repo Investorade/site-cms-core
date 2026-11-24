@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
+import { readCmsConfig } from '../cms-config.ts';
 
 /**
  * Writes dist/admin/content-rules.json: what a page and a blog post may contain, for the CMS's AI connector
@@ -12,7 +13,7 @@ import YAML from 'yaml';
  *
  * - `schema`: the front matter as JSON Schema, made from the same Zod schemas the site builds with
  *   (src/lib/content-schemas.ts).
- * - `cms`: the CMS fields from public/admin/config.yml (labels, hints, select options), so the AI knows what each
+ * - `cms`: the CMS fields from the CMS config (cms/*.yml) (labels, hints, select options), so the AI knows what each
  *   section and field is for, and select fields (icons, looks) only take the CMS's choices.
  * - Where things live: content folders, the media folder, the redirects and menu files, reserved addresses.
  * - `settings`: the Site settings files an AI may change (only for people given "Site settings too" by an admin), with
@@ -21,7 +22,7 @@ import YAML from 'yaml';
  */
 
 /**
- * Site settings an AI may change (by the settings entry's name in public/admin/config.yml), and what stays locked in
+ * Site settings an AI may change (by the settings entry's name in the CMS config (cms/*.yml)), and what stays locked in
  * each: dot paths, where * is any key or list item. Locked parts are kept as they are and hidden from the AI. Files
  * not listed here (ai.json above all) can't be changed by an AI.
  */
@@ -131,7 +132,7 @@ export default function contentRules({ schemas }: ContentRulesOptions): AstroInt
 			'astro:build:done': ({ dir, logger }) => {
 				const root = process.cwd();
 				const outDir = fileURLToPath(dir);
-				const config = YAML.parse(fs.readFileSync(path.join(root, 'public/admin/config.yml'), 'utf8')) as {
+				const config = readCmsConfig(root) as {
 					media_folder?: string;
 					public_folder?: string;
 					collections: Record<string, unknown>[];

@@ -1,0 +1,18 @@
+# Shared field sets. Use them in any cms/*.yml file (core or site) as `fields: !core image`.
+
+# An image: file, alt text and size.
+image:
+  - { name: src, label: Image, widget: image }
+  - name: alt
+    label: Alt text
+    required: false
+    hint: "Describe what the image shows in a few words, e.g. “RV parked under pine trees at Henderson RV Park”. Google (image search) and screen readers use it. Leave empty only for purely decorative images."
+  - { name: width, label: Width (px), widget: number, required: false }
+  - { name: height, label: Height (px), widget: number, required: false }
+
+# A button: label and link.
+button:
+  - { name: label, label: Label }
+  - name: link
+    label: Link
+    hint: 'A page URL (e.g. /pricing/), a full URL, or #book-now to open the Book Now popup.'

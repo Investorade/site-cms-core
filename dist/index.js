@@ -1,7 +1,9 @@
 import { fileURLToPath } from 'node:url';
+import cmsConfig from "./cms-config.js";
 import contentRules from "./integrations/content-rules.js";
 import formsCheck from "./integrations/forms-check.js";
 import seoFiles from "./integrations/seo-files.js";
+export { readCmsConfig, cmsConfigYaml } from "./cms-config.js";
 function setup() {
     return {
         name: 'site-cms-core',
@@ -20,5 +22,5 @@ function setup() {
     };
 }
 export default function siteCmsCore(options) {
-    return [setup(), seoFiles(), formsCheck(), contentRules(options)];
+    return [setup(), cmsConfig(), seoFiles(), formsCheck(), contentRules(options)];
 }

@@ -1,0 +1,71 @@
+# The Blog collection.
+
+name: posts
+label: Blog
+label_singular: Post
+icon: article
+folder: src/content/posts
+extension: md
+format: frontmatter
+create: true
+slug: '{{slug}}'
+identifier_field: title
+summary: '{{title}}'
+description: "Each post is at the site root, e.g. /top-rv-parks-in-henderson-tx/ (as on WordPress); the list is at /blog/. The list itself is the Blog page under Pages (heading, intro, photo, paging, sidebar card)."
+thumbnail: image.src
+table_columns:
+  - title
+  - { field: date, label: Published }
+  - { field: draft, label: Draft }
+  - { field: commit_author, label: Updated by }
+sortable_fields:
+  fields: [title, date, commit_date]
+  default: { field: date, direction: descending }
+view_filters:
+  - { label: Drafts, field: draft, pattern: true }
+editor:
+  preview: true
+fields:
+  - { name: title, label: Title, hint: "The post's heading on the page and in the blog list." }
+  - name: slug
+    label: URL slug
+    required: false
+    hint: "Leave empty to use the file name. Only set it to keep an old WordPress address exactly."
+  - { name: date, label: Published, widget: datetime, time_format: false, required: false, default: '{{now}}', hint: "Posts are listed newest first. Filled in with today for a new post." }
+  - { name: updated, label: Updated, widget: datetime, time_format: false, required: false, hint: "Optional. Shown as “Updated …” when later than the published date." }
+  - name: draft
+    label: Draft
+    widget: boolean
+    default: false
+    required: false
+    hint: "A draft has its own address (so the preview works) but isn't in the blog list, the sitemap or search engines."
+  - name: image
+    label: Featured image
+    widget: object
+    required: false
+    collapsed: auto
+    hint: "Shown on the blog cards, at the top of the post and when it's shared. A wide photo, about 1600 × 900 px."
+    fields: !core image
+  - { name: excerpt, label: Excerpt, widget: text, required: false, hint: "One or two sentences for the blog list. Leave empty to use the start of the post." }
+  - name: body
+    label: Article
+    widget: markdown
+    required: false
+    hint: "Use Heading 2 for main sections (they make the “In this article” list) and Heading 3 inside them. A section titled “FAQ” with Heading 3 questions is also sent to Google as FAQ data."
+  - name: seo
+    label: SEO
+    widget: object
+    collapsed: false
+    required: false
+    fields:
+      - { name: title, label: SEO title, required: false, hint: "Shown in the browser tab and as the link in Google. At most 60 characters (about 580 px), starting with the main keyword. Leave empty to use the title followed by the site name." }
+      - { name: description, label: Meta description, widget: text, required: false, hint: "The text under the link in Google. At most 160 characters (about 920 px), with the main keyword. Leave empty to use the excerpt (or the start of the post)." }
+      - { name: focus_keyword, label: Focus keyword, required: false, hint: "The search phrases to rank for, separated by commas, main one first, e.g. “Henderson RV Park, RV park in Henderson TX”. Not shown on the page. The SEO score below checks them the way Rank Math does; give each page its own main keyword." }
+  - name: advanced
+    label: Advanced
+    widget: object
+    collapsed: true
+    required: false
+    fields:
+      - { name: hide_from_search, label: Search engine visibility, widget: boolean, after_input: Hide this post from search engines, required: false, default: false }
+      - { name: robots, label: Robots, required: false, default: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" }
