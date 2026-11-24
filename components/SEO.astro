@@ -1,0 +1,69 @@
+---
+import site from '@site/data/site.json';
+import { absoluteUrl } from '../dist/lib/links.js';
+import type { PageSeo } from '../dist/schemas.js';
+
+/**
+ * Head tags matching the Yoast SEO output of the WordPress site.
+ * `notFound` gives Yoast's 404 tags instead: no canonical, description, og:url or Twitter card.
+ */
+type Props = { seo: PageSeo; notFound?: never } | { notFound: true; seo?: never };
+
+const { seo, notFound } = Astro.props;
+const canonical = seo ? (seo.canonical ?? absoluteUrl(Astro.url.pathname)) : undefined;
+const ogImage = seo?.og_image;
+const imageTypes: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+const ogImageType = ogImage ? imageTypes[ogImage.src.split('.').pop()?.toLowerCase() ?? ''] : undefined;
+const favicon = site.favicon;
+const notFoundTitle = `Page not found - ${site.site_name}`;
+
+// Search engine visibility, as in WordPress and Yoast: the site-wide switch (Site settings) outputs noindex, nofollow
+// on every page; a page's own "Hide this page" switch (and the 404 page) output noindex, follow. Otherwise the page's
+// Robots value is used.
+const robots = site.discourage_search_engines
+	? 'noindex, nofollow'
+	: notFound || seo?.hide_from_search
+		? 'noindex, follow'
+		: seo?.robots;
+---
+
+<meta name="robots" content={robots} />
+{
+	seo ? (
+		<>
+			<title>{seo.title}</title>
+			{seo.description && <meta name="description" content={seo.description} />}
+			<link rel="canonical" href={canonical} />
+			<meta property="og:locale" content={site.locale} />
+			<meta property="og:type" content={seo.og_type} />
+			<meta property="og:title" content={seo.og_title ?? seo.title} />
+			{seo.description && <meta property="og:description" content={seo.description} />}
+			<meta property="og:url" content={canonical} />
+			<meta property="og:site_name" content={site.site_name} />
+			<meta property="article:publisher" content={site.facebook_url} />
+			{seo.date_modified && <meta property="article:modified_time" content={seo.date_modified} />}
+			{ogImage && (
+				<>
+					<meta property="og:image" content={absoluteUrl(ogImage.src)} />
+					{ogImage.width && <meta property="og:image:width" content={String(ogImage.width)} />}
+					{ogImage.height && <meta property="og:image:height" content={String(ogImage.height)} />}
+					{ogImageType && <meta property="og:image:type" content={ogImageType} />}
+				</>
+			)}
+			<meta name="twitter:card" content="summary_large_image" />
+		</>
+	) : (
+		<>
+			<title>{notFoundTitle}</title>
+			<meta property="og:locale" content={site.locale} />
+			<meta property="og:title" content={notFoundTitle} />
+			<meta property="og:site_name" content={site.site_name} />
+		</>
+	)
+}
+<meta name="geo.placename" content={site.geo.placename} />
+<meta name="geo.region" content={site.geo.region} />
+<link rel="icon" href={favicon} sizes="32x32" />
+<link rel="icon" href={favicon} sizes="192x192" />
+<link rel="apple-touch-icon" href={favicon} />
+<meta name="msapplication-TileImage" content={absoluteUrl(favicon)} />

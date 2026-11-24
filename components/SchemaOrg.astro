@@ -1,0 +1,119 @@
+---
+import site from '@site/data/site.json';
+import { absoluteUrl } from '../dist/lib/links.js';
+import type { PageSeo } from '../dist/schemas.js';
+
+/**
+ * JSON-LD graph matching the Yoast SEO (+ Local SEO) output of the WordPress site.
+ * The WordPress SearchAction is intentionally omitted: there is no site search on the static site.
+ * `notFound` gives Yoast's 404 graph: the site, organization, address and logo, with no WebPage or breadcrumb.
+ */
+type Props = { seo: PageSeo; breadcrumbName?: string; notFound?: never } | { notFound: true; seo?: never; breadcrumbName?: never };
+
+const { seo, breadcrumbName = 'Home' } = Astro.props;
+const home = absoluteUrl('/');
+const s = site.schema;
+const logoUrl = absoluteUrl(s.logo.src);
+
+const pageNodes = seo ? webPageNodes(seo, seo.canonical ?? absoluteUrl(Astro.url.pathname)) : [];
+
+function webPageNodes(seo: PageSeo, url: string) {
+	const primaryImage = seo.og_image ? absoluteUrl(seo.og_image.src) : undefined;
+	return [
+		{
+			'@type': 'WebPage',
+			'@id': url,
+			url,
+			name: seo.title,
+			isPartOf: { '@id': `${home}#website` },
+			about: { '@id': `${home}#organization` },
+			...(primaryImage && {
+				primaryImageOfPage: { '@id': `${url}#primaryimage` },
+				image: { '@id': `${url}#primaryimage` },
+				thumbnailUrl: primaryImage,
+			}),
+			...(seo.date_published && { datePublished: seo.date_published }),
+			...(seo.date_modified && { dateModified: seo.date_modified }),
+			...(seo.description && { description: seo.description }),
+			breadcrumb: { '@id': `${url}#breadcrumb` },
+			inLanguage: site.language,
+			potentialAction: [{ '@type': 'ReadAction', target: [url] }],
+		},
+		...(primaryImage
+			? [
+					{
+						'@type': 'ImageObject',
+						inLanguage: site.language,
+						'@id': `${url}#primaryimage`,
+						url: primaryImage,
+						contentUrl: primaryImage,
+						width: seo.og_image?.width,
+						height: seo.og_image?.height,
+					},
+				]
+			: []),
+		{
+			'@type': 'BreadcrumbList',
+			'@id': `${url}#breadcrumb`,
+			itemListElement: [{ '@type': 'ListItem', position: 1, name: breadcrumbName }],
+		},
+	];
+}
+
+const graph = [
+	...pageNodes,
+	{
+		'@type': 'WebSite',
+		'@id': `${home}#website`,
+		url: home,
+		name: site.site_name,
+		description: site.site_description,
+		publisher: { '@id': `${home}#organization` },
+		inLanguage: site.language,
+	},
+	{
+		'@type': s.types,
+		'@id': `${home}#organization`,
+		name: s.name,
+		url: home,
+		logo: { '@id': `${home}#local-main-organization-logo` },
+		image: { '@id': `${home}#local-main-organization-logo` },
+		sameAs: s.same_as,
+		address: { '@id': `${home}#local-main-place-address` },
+		telephone: [s.telephone],
+		openingHoursSpecification: [
+			{
+				'@type': 'OpeningHoursSpecification',
+				dayOfWeek: s.opening_hours.days,
+				opens: s.opening_hours.opens,
+				closes: s.opening_hours.closes,
+			},
+		],
+		email: s.email,
+		areaServed: s.area_served,
+	},
+	{
+		'@type': 'PostalAddress',
+		'@id': `${home}#local-main-place-address`,
+		streetAddress: site.address.street,
+		addressLocality: site.address.city,
+		postalCode: site.address.postal_code,
+		addressRegion: site.address.region,
+		addressCountry: site.address.country,
+	},
+	{
+		'@type': 'ImageObject',
+		inLanguage: site.language,
+		'@id': `${home}#local-main-organization-logo`,
+		url: logoUrl,
+		contentUrl: logoUrl,
+		width: s.logo.width,
+		height: s.logo.height,
+		caption: s.logo.caption,
+	},
+];
+
+const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+---
+
+<script is:inline type="application/ld+json" set:html={json} />
