@@ -42,6 +42,10 @@ import { createPageSchema, createPostSchema, image, button, blogListBlock } from
 
 // worker/index.ts
 export { default } from '@investorade/site-cms-core/worker';
+
+// wrangler.jsonc: Cloudflare builds branches with `wrangler preview`, which needs this block. Without it, the
+// preview of an update (CMS admin → Updates) fails at its deploy step.
+"previews": {}
 ```
 
 Components: `@investorade/site-cms-core/components/SEO.astro`, `.../SchemaOrg.astro`. Helpers: `@investorade/site-cms-core/lib/<name>`
