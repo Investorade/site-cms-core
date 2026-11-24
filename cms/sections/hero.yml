@@ -1,0 +1,18 @@
+# Shared section: Hero (components/sections/Hero.astro). Use it in a site's cms/sections.yml as `- !section hero`.
+name: hero
+label: Hero
+summary: 'Hero: {{heading}}'
+hint: "The top of the page. Its heading is the page's main heading (H1), so use one hero per page."
+fields:
+  - !core hidden
+  - { name: heading, label: Heading }
+  - { name: text, label: Text, widget: text, required: false }
+  - { name: button, label: Button, widget: object, required: false, fields: !core button }
+  - { name: image, label: Background image, widget: object, required: false, fields: !core image, hint: "A wide photo, about 1600 × 900 px. Leave empty for a plain colour." }
+  - name: align
+    label: Text position
+    widget: select
+    default: left
+    options:
+      - { label: Left, value: left }
+      - { label: Centre, value: center }

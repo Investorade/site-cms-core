@@ -1,0 +1,16 @@
+# Shared section: Call to action (components/sections/Cta.astro). Use it as `- !section cta`.
+name: cta
+label: Call to action
+summary: '{{heading}}'
+fields:
+  - !core hidden
+  - { name: heading, label: Heading }
+  - { name: text, label: Text, widget: text, required: false }
+  - { name: button, label: Button, widget: object, required: false, fields: !core button }
+  - name: style
+    label: Colour
+    widget: select
+    default: brand
+    options:
+      - { label: Brand colour, value: brand }
+      - { label: Light, value: soft }

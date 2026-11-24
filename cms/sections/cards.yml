@@ -1,0 +1,27 @@
+# Shared section: Cards (components/sections/Cards.astro). Use it as `- !section cards`.
+name: cards
+label: Cards
+summary: '{{heading}}'
+hint: "A grid of cards, e.g. services, amenities or features."
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, required: false }
+  - { name: intro, label: Intro, widget: text, required: false }
+  - name: columns
+    label: Cards per row
+    widget: select
+    default: 3
+    options:
+      - { label: '2', value: 2 }
+      - { label: '3', value: 3 }
+      - { label: '4', value: 4 }
+  - name: cards
+    label: Cards
+    label_singular: Card
+    widget: list
+    summary: '{{fields.heading}}'
+    fields:
+      - { name: image, label: Image, widget: object, required: false, fields: !core image, hint: "Optional. Shown at the top of the card, about 800 × 500 px." }
+      - { name: heading, label: Heading }
+      - { name: text, label: Text, widget: text, required: false }
+      - { name: link, label: Link, widget: object, required: false, fields: !core button, hint: "Optional. The whole card links there." }

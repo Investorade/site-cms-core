@@ -1,0 +1,76 @@
+/*
+ * The shared sections' look: plain class rules (all named core-…), so they beat the site's element rules (a, h2…). To
+ * change one, the site's CSS uses a selector one step more specific, e.g. `body .core-hero { … }` or
+ * `.page .core-cta--brand { … }`, or draws that section with its own component (Sections.astro → `components`).
+ * The sections read the site's tokens (set them in the site's :root); the values after the commas are used when a site
+ * doesn't set one:
+ *
+ *   --brand, --brand-dark      buttons, call-to-action band, links
+ *   --text, --muted            text, secondary text
+ *   --line, --soft, --page     borders, light backgrounds, the page background
+ *   --radius                   corners of images, cards and bands
+ *   --width, --narrow          content width, narrow column width (text, FAQ, contact)
+ *   --section-space            space above and below each section
+ *   --heading-font             headings (defaults to the page font)
+ */
+.core-container { width: min(var(--width, 1120px), 100% - 40px); margin-inline: auto; }
+.core-container--narrow { width: min(var(--narrow, 760px), 100% - 40px); }
+.core-section { padding: var(--section-space, 64px) 0; }
+.core-section h1, .core-section h2, .core-section h3, .core-hero h1 { font-family: var(--heading-font, inherit); }
+.core-section__head { max-width: var(--narrow, 760px); margin-bottom: 32px; }
+.core-lead { font-size: 1.15rem; color: var(--muted, #5d606b); }
+.core-prose ul, .core-prose ol { padding-left: 1.3em; }
+
+.core-btn {
+	display: inline-flex; align-items: center; padding: 12px 22px; border-radius: 999px; border: 2px solid var(--brand, #1f4fd1);
+	color: var(--brand, #1f4fd1); font-weight: 600; text-decoration: none;
+}
+.core-btn:hover { background: var(--soft, #f5f6f8); }
+.core-btn--primary { background: var(--brand, #1f4fd1); color: #fff; }
+.core-btn--primary:hover { background: var(--brand-dark, var(--brand, #173ba0)); border-color: var(--brand-dark, var(--brand, #173ba0)); }
+.core-btn--light { background: #fff; border-color: #fff; color: var(--brand, #1f4fd1); }
+.core-btn--light:hover { background: var(--soft, #f5f6f8); }
+
+.core-hero { padding: calc(var(--section-space, 64px) * 1.5) 0; background: var(--soft, #f5f6f8); }
+.core-hero--image { background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), var(--core-hero-image) center / cover; color: #fff; }
+.core-hero--center .core-hero__inner { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.core-hero__text { font-size: 1.2rem; max-width: 640px; }
+
+.core-image-text { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.core-image-text--right .core-image-text__image { order: 2; }
+.core-image-text__image { width: 100%; height: auto; border-radius: var(--radius, 12px); background: var(--soft, #f5f6f8); }
+
+.core-faq details { border-bottom: 1px solid var(--line, #e5e6ea); padding: 16px 0; }
+.core-faq summary { cursor: pointer; font-weight: 600; }
+.core-faq details p { margin: 12px 0 0; color: var(--muted, #5d606b); }
+
+.core-cta { border-radius: var(--radius, 12px); padding: 48px; text-align: center; }
+.core-cta--brand { background: var(--brand, #1f4fd1); color: #fff; }
+.core-cta--soft { background: var(--soft, #f5f6f8); }
+
+.core-contact { display: grid; grid-template-columns: 120px 1fr; gap: 12px 24px; }
+.core-contact dt { color: var(--muted, #5d606b); }
+.core-contact dd { margin: 0; }
+
+.core-cards, .core-gallery { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; grid-template-columns: repeat(var(--core-columns, 3), minmax(0, 1fr)); }
+.core-card { position: relative; display: flex; flex-direction: column; border: 1px solid var(--line, #e5e6ea); border-radius: var(--radius, 12px); overflow: hidden; background: var(--page, #fff); }
+.core-card__image { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
+.core-card__body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.core-card__body h3 { margin: 0; font-size: 1.2rem; }
+.core-card__body p { margin: 0; color: var(--muted, #5d606b); }
+.core-card__link { color: inherit; text-decoration: none; }
+.core-card__link::after { content: ''; position: absolute; inset: 0; }
+.core-card__more { margin-top: auto; padding-top: 8px; color: var(--brand, #1f4fd1); font-weight: 600; }
+.core-card:has(.core-card__link):hover { border-color: var(--brand, #1f4fd1); }
+.core-gallery { gap: 12px; }
+.core-gallery img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius, 12px); }
+
+@media (max-width: 860px) {
+	.core-image-text { grid-template-columns: 1fr; gap: 28px; }
+	.core-image-text--right .core-image-text__image { order: 0; }
+	.core-cards, .core-gallery { grid-template-columns: repeat(min(var(--core-columns, 3), 2), minmax(0, 1fr)); }
+	.core-cta { padding: 32px 20px; }
+}
+@media (max-width: 560px) {
+	.core-cards { grid-template-columns: 1fr; }
+}

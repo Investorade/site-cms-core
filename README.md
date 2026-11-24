@@ -11,12 +11,14 @@ and a site changes only when it is updated there.
 - The CMS fields for pages, posts and Site settings (merged at build with the site's own section types into `/admin/config.yml`)
 - Content rules and checks (one address per page, title-only requirement, redirects, sitemap, robots)
 - SEO tags and schema.org data, the blog engine, HTML cleaning, the forms check
+- Shared page sections (optional): Hero, Text, Image and text, Cards, Gallery, Questions and answers, Call to action,
+  Contact details
 - The admin and AI connector routes for the site's Worker
 - The shared CMS kit version that matches each release (planned)
 
 ## What stays in each site
 
-Design (sections, header, footer, styles, icons), content, uploads, settings values, and `site.config` (site type and which
+Design (its own sections, header, footer, styles, icons, and the colours and sizes the shared sections use), content, uploads, settings values, and `site.config` (site type and which
 features are on).
 
 ## Versions
@@ -67,6 +69,46 @@ build). Don't keep a `public/admin/config.yml`: the build stops if there is one.
 
 `fields: !core image` (or `!core button`) uses a shared field set, in core and site files alike. `readCmsConfig(root)` and
 `cmsConfigYaml(root)` (from `@investorade/site-cms-core`) give the result as data or text.
+
+## Shared sections
+
+Section types a site can use instead of building its own. Each has its CMS fields (`cms/sections/<name>.yml`), its
+schema (`@investorade/site-cms-core/sections`) and its look (`components/sections/<Name>.astro`), all under the same
+name: `hero`, `text`, `image_text`, `cards`, `gallery`, `faq`, `cta`, `contact`. A site mixes them with its own:
+
+```yaml
+# cms/sections.yml
+- !section hero
+- !section faq
+- name: rates            # the site's own section type, as before
+  label: Rates
+  fields: [...]
+```
+
+```ts
+// src/lib/content-schemas.ts
+import { coreSections } from '@investorade/site-cms-core/sections';
+const contentBlock = z.discriminatedUnion('_type', [coreSections.hero, coreSections.faq, ratesBlock, blogListBlock]);
+```
+
+```astro
+---
+// a page: the shared sections are drawn by the core, the site's own by the components it passes
+import Sections from '@investorade/site-cms-core/components/Sections.astro';
+import Rates from '../components/blocks/Rates.astro';
+---
+<Sections blocks={page.data.content_blocks} components={{ rates: Rates }} />
+```
+
+**The look stays the site's.** The sections read the site's CSS variables, with a neutral fallback for any it doesn't
+set: `--brand`, `--brand-dark`, `--text`, `--muted`, `--line`, `--soft`, `--page`, `--radius`, `--width`, `--narrow`,
+`--section-space`, `--heading-font`. Their classes all start with `core-`; to change a rule, use a selector one step
+more specific in the site's CSS (`body .core-hero { … }`). To draw a shared section quite differently, pass the site's
+own component for it (`components={{ hero: MyHero }}`): it gets the same `block`, so the CMS fields and the AI
+connector's rules stay the shared ones.
+
+A site that copies a shared section's fields into its own `cms/sections.yml` (to change them) owns that section from
+then on: core updates no longer change it.
 
 ## Site type and features
 

@@ -1,0 +1,17 @@
+---
+import { md } from '../../dist/lib/markdown.js';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** A heading and Markdown text in a narrow column. */
+interface Props {
+	block: CoreSection<'text'>;
+}
+const { block } = Astro.props;
+---
+
+<section class="core-section">
+	<div class="core-container core-container--narrow">
+		{block.heading && <h2>{block.heading}</h2>}
+		<div class="core-prose" set:html={md(block.body)} />
+	</div>
+</section>

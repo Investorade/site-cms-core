@@ -4,7 +4,7 @@ import cmsConfig from "./cms-config.js";
 import contentRules from "./integrations/content-rules.js";
 import formsCheck from "./integrations/forms-check.js";
 import seoFiles from "./integrations/seo-files.js";
-export { readCmsConfig, cmsConfigYaml } from "./cms-config.js";
+export { readCmsConfig, cmsConfigYaml, coreSectionTypes } from "./cms-config.js";
 function setup() {
     return {
         name: 'site-cms-core',

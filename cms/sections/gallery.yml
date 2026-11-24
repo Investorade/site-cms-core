@@ -1,0 +1,22 @@
+# Shared section: Gallery (components/sections/Gallery.astro). Use it as `- !section gallery`.
+name: gallery
+label: Gallery
+summary: '{{heading}}'
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, required: false }
+  - { name: intro, label: Intro, widget: text, required: false }
+  - name: columns
+    label: Photos per row
+    widget: select
+    default: 3
+    options:
+      - { label: '2', value: 2 }
+      - { label: '3', value: 3 }
+      - { label: '4', value: 4 }
+  - name: images
+    label: Photos
+    label_singular: Photo
+    widget: list
+    summary: '{{fields.alt}}'
+    fields: !core image

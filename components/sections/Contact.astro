@@ -1,0 +1,23 @@
+---
+import site from '@site/data/site.json';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** Contact details from Site settings → Site info, under a heading (the page's H1: it's made for the Contact page). */
+interface Props {
+	block: CoreSection<'contact'>;
+}
+const { block } = Astro.props;
+const info = site as { phone?: { display?: string; href?: string }; email?: string; address?: { display?: string; maps_url?: string } };
+---
+
+<section class="core-section">
+	<div class="core-container core-container--narrow">
+		<h1>{block.heading}</h1>
+		{block.text && <p>{block.text}</p>}
+		<dl class="core-contact">
+			{info.phone?.display && (<><dt>Phone</dt><dd><a href={info.phone.href}>{info.phone.display}</a></dd></>)}
+			{info.email && (<><dt>Email</dt><dd><a href={`mailto:${info.email}`}>{info.email}</a></dd></>)}
+			{info.address?.display && (<><dt>Address</dt><dd>{info.address.maps_url ? <a href={info.address.maps_url} target="_blank" rel="noopener">{info.address.display}</a> : info.address.display}</dd></>)}
+		</dl>
+	</div>
+</section>

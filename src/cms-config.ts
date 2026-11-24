@@ -15,7 +15,8 @@ import YAML from 'yaml';
  *     a divider
  *     core settings.yml, with the site's settings.yml files after the core's
  *
- * In any of these files, `!core <name>` is a shared field set from the core's fields.yml (`fields: !core image`).
+ * In any of these files, `!core <name>` is a shared field set from the core's fields.yml (`fields: !core image`), and in
+ * the site's sections.yml `- !section <name>` is a shared section type (the core's cms/sections/<name>.yml).
  * The dev server serves the result at /admin/config.yml, and the build writes it to dist/admin/config.yml.
  */
 
@@ -27,6 +28,15 @@ const HEADER = `# Made by the CMS core (@investorade/site-cms-core) when the sit
 # change the site's cms/*.yml (sections, its own Site settings, repo, CMS title) or the core's cms/*.yml.
 `;
 
+/** The shared section types (cms/sections/<name>.yml), by name. */
+export function coreSectionTypes(): string[] {
+	return fs
+		.readdirSync(path.join(coreDir, 'sections'))
+		.filter((f) => f.endsWith('.yml'))
+		.map((f) => f.slice(0, -4))
+		.sort();
+}
+
 function readYaml(file: string, fields?: Obj): unknown {
 	const customTags = [
 		{
@@ -34,6 +44,15 @@ function readYaml(file: string, fields?: Obj): unknown {
 			resolve(name: string) {
 				if (!fields || !(name in fields)) throw new Error(`"!core ${name}" is not a shared field set. There are: ${Object.keys(fields ?? {}).join(', ')}.`);
 				return structuredClone(fields[name]);
+			},
+		},
+		{
+			// `- !section faq` in a site's cms/sections.yml: the CMS fields of a shared section type (cms/sections/faq.yml).
+			tag: '!section',
+			resolve(name: string) {
+				const types = coreSectionTypes();
+				if (!types.includes(name)) throw new Error(`"!section ${name}" is not a shared section. There are: ${types.join(', ')}.`);
+				return readYaml(path.join(coreDir, 'sections', `${name}.yml`), fields);
 			},
 		},
 	];
@@ -79,6 +98,12 @@ export function readCmsConfig(root: string): Obj {
 	const pageFields = pages.fields as Obj[];
 	const blocks = pageFields.find((f) => f.name === 'content_blocks');
 	if (blocks) {
+		const typeNames = new Set<string>();
+		for (const type of sections as Obj[]) {
+			if (!isObj(type) || typeof type.name !== 'string') throw new Error('cms/sections.yml: each section type needs a name (- name: hero …, or - !section hero).');
+			if (typeNames.has(type.name)) throw new Error(`cms/sections.yml: two section types are called "${type.name}".`);
+			typeNames.add(type.name);
+		}
 		if (sections.length) blocks.types = sections;
 		else pageFields.splice(pageFields.indexOf(blocks), 1);
 	}

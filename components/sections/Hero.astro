@@ -1,0 +1,21 @@
+---
+import { linkAttrs } from '../../dist/lib/links.js';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** The top of a page: the page's H1, text, a button and an optional background photo. */
+interface Props {
+	block: CoreSection<'hero'>;
+}
+const { block } = Astro.props;
+---
+
+<section
+	class:list={['core-hero', block.image && 'core-hero--image', `core-hero--${block.align}`]}
+	style={block.image ? `--core-hero-image: url('${block.image.src}')` : undefined}
+>
+	<div class="core-container core-hero__inner">
+		<h1>{block.heading}</h1>
+		{block.text && <p class="core-hero__text">{block.text}</p>}
+		{block.button && <a class="core-btn core-btn--primary" {...linkAttrs(block.button.link)}>{block.button.label}</a>}
+	</div>
+</section>

@@ -1,0 +1,37 @@
+---
+import { linkAttrs } from '../../dist/lib/links.js';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** A grid of cards; a card with a link is a link as a whole. */
+interface Props {
+	block: CoreSection<'cards'>;
+}
+const { block } = Astro.props;
+---
+
+{
+	block.cards.length > 0 && (
+		<section class="core-section">
+			<div class="core-container">
+				{(block.heading || block.intro) && (
+					<div class="core-section__head">
+						{block.heading && <h2>{block.heading}</h2>}
+						{block.intro && <p class="core-lead">{block.intro}</p>}
+					</div>
+				)}
+				<ul class="core-cards" style={`--core-columns: ${block.columns}`}>
+					{block.cards.map((card) => (
+						<li class="core-card">
+							{card.image && <img class="core-card__image" src={card.image.src} alt={card.image.alt} width={card.image.width} height={card.image.height} loading="lazy" />}
+							<div class="core-card__body">
+								<h3>{card.link ? <a class="core-card__link" {...linkAttrs(card.link.link)}>{card.heading}</a> : card.heading}</h3>
+								{card.text && <p>{card.text}</p>}
+								{card.link && <span class="core-card__more" aria-hidden="true">{card.link.label} →</span>}
+							</div>
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+	)
+}

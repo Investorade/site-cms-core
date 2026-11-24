@@ -24,7 +24,7 @@ import seoFiles from './integrations/seo-files.ts';
  * e.g. @site/data/site.json).
  */
 export type SiteCmsCoreOptions = ContentRulesOptions;
-export { readCmsConfig, cmsConfigYaml } from './cms-config.ts';
+export { readCmsConfig, cmsConfigYaml, coreSectionTypes } from './cms-config.ts';
 
 function setup(): AstroIntegration {
 	return {

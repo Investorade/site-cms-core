@@ -1,0 +1,9 @@
+# Shared section: Contact details (components/sections/Contact.astro). Use it as `- !section contact`.
+name: contact
+label: Contact details
+summary: '{{heading}}'
+hint: "Phone, email and address come from Site settings → Site info."
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, default: Contact us }
+  - { name: text, label: Text, widget: text, required: false }

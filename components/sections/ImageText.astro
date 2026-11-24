@@ -1,0 +1,22 @@
+---
+import { md } from '../../dist/lib/markdown.js';
+import { linkAttrs } from '../../dist/lib/links.js';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** An image beside a heading, text and a button. */
+interface Props {
+	block: CoreSection<'image_text'>;
+}
+const { block } = Astro.props;
+---
+
+<section class="core-section">
+	<div class:list={['core-container', 'core-image-text', `core-image-text--${block.image_position}`]}>
+		<img class="core-image-text__image" src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} loading="lazy" />
+		<div>
+			{block.heading && <h2>{block.heading}</h2>}
+			<div class="core-prose" set:html={md(block.body)} />
+			{block.button && <a class="core-btn" {...linkAttrs(block.button.link)}>{block.button.label}</a>}
+		</div>
+	</div>
+</section>

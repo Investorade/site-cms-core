@@ -1,0 +1,18 @@
+---
+import { linkAttrs } from '../../dist/lib/links.js';
+import type { CoreSection } from '../../dist/sections.js';
+
+/** A coloured band with a heading, text and a button. */
+interface Props {
+	block: CoreSection<'cta'>;
+}
+const { block } = Astro.props;
+---
+
+<section class="core-section">
+	<div class:list={['core-container', 'core-cta', `core-cta--${block.style}`]}>
+		<h2>{block.heading}</h2>
+		{block.text && <p>{block.text}</p>}
+		{block.button && <a class:list={['core-btn', block.style === 'brand' ? 'core-btn--light' : 'core-btn--primary']} {...linkAttrs(block.button.link)}>{block.button.label}</a>}
+	</div>
+</section>

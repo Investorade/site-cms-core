@@ -1,0 +1,31 @@
+---
+import type { CoreSection } from '../../dist/sections.js';
+
+/** A grid of photos, cropped to the same shape. */
+interface Props {
+	block: CoreSection<'gallery'>;
+}
+const { block } = Astro.props;
+---
+
+{
+	block.images.length > 0 && (
+		<section class="core-section">
+			<div class="core-container">
+				{(block.heading || block.intro) && (
+					<div class="core-section__head">
+						{block.heading && <h2>{block.heading}</h2>}
+						{block.intro && <p class="core-lead">{block.intro}</p>}
+					</div>
+				)}
+				<ul class="core-gallery" style={`--core-columns: ${block.columns}`}>
+					{block.images.map((img) => (
+						<li>
+							<img src={img.src} alt={img.alt} width={img.width} height={img.height} loading="lazy" />
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+	)
+}

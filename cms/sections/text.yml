@@ -1,0 +1,8 @@
+# Shared section: Text (components/sections/Text.astro). Use it in a site's cms/sections.yml as `- !section text`.
+name: text
+label: Text
+summary: '{{heading}}'
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, required: false }
+  - { name: body, label: Text, widget: markdown, required: false }

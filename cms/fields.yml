@@ -16,3 +16,6 @@ button:
   - name: link
     label: Link
     hint: 'A page URL (e.g. /pricing/), a full URL[[or_popup_link]].'
+
+# "Hide this section": the first field of every section type (one field, used as `- !core hidden`).
+hidden: { name: hidden, label: Hide this section, widget: boolean, required: false, default: false, hint: "Hidden sections stay saved but aren't shown on the site." }

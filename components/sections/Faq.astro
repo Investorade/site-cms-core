@@ -1,0 +1,33 @@
+---
+import type { CoreSection } from '../../dist/sections.js';
+
+/** Questions and answers that open one by one; also FAQPage structured data for Google. */
+interface Props {
+	block: CoreSection<'faq'>;
+}
+const { block } = Astro.props;
+const schema = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: block.items.map((i) => ({ '@type': 'Question', name: i.question, acceptedAnswer: { '@type': 'Answer', text: i.answer } })),
+};
+---
+
+{
+	block.items.length > 0 && (
+		<section class="core-section">
+			<div class="core-container core-container--narrow">
+				<h2>{block.heading}</h2>
+				<div class="core-faq">
+					{block.items.map((item) => (
+						<details>
+							<summary>{item.question}</summary>
+							<p>{item.answer}</p>
+						</details>
+					))}
+				</div>
+			</div>
+			<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+		</section>
+	)
+}

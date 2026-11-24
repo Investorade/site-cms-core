@@ -1,0 +1,17 @@
+# Shared section: Image and text (components/sections/ImageText.astro). Use it as `- !section image_text`.
+name: image_text
+label: Image and text
+summary: '{{heading}}'
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, required: false }
+  - { name: body, label: Text, widget: markdown, required: false }
+  - { name: image, label: Image, widget: object, fields: !core image }
+  - name: image_position
+    label: Image side
+    widget: select
+    default: left
+    options:
+      - { label: Left, value: left }
+      - { label: Right, value: right }
+  - { name: button, label: Button, widget: object, required: false, fields: !core button }

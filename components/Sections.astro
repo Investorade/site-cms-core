@@ -1,0 +1,42 @@
+---
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import Hero from './sections/Hero.astro';
+import Text from './sections/Text.astro';
+import ImageText from './sections/ImageText.astro';
+import Faq from './sections/Faq.astro';
+import Cta from './sections/Cta.astro';
+import Contact from './sections/Contact.astro';
+import Cards from './sections/Cards.astro';
+import Gallery from './sections/Gallery.astro';
+import './sections/sections.css';
+
+/**
+ * A page's sections, top to bottom, leaving out hidden ones. The shared sections (see dist/sections.js) are drawn by the
+ * core's components; the site passes components for its own section types, and may pass its own for any shared one
+ * to draw it differently:
+ *
+ *   <Sections blocks={page.data.content_blocks} components={{ rates: Rates, hero: MyHero }} />
+ *
+ * Each component gets the section as `block`. The "Blog posts list" (blog_list) is drawn by the blog route, so it's
+ * skipped here, as are the types named in `skip`.
+ */
+type Block = { _type: string; hidden?: boolean };
+interface Props {
+	blocks: Block[];
+	components?: Record<string, AstroComponentFactory>;
+	skip?: string[];
+}
+
+const { blocks, components = {}, skip = [] } = Astro.props;
+const shared: Record<string, AstroComponentFactory> = { hero: Hero, text: Text, image_text: ImageText, faq: Faq, cta: Cta, contact: Contact, cards: Cards, gallery: Gallery };
+const skipped = new Set(['blog_list', ...skip]);
+const drawn = blocks
+	.filter((block) => !block.hidden && !skipped.has(block._type))
+	.map((block) => {
+		const Component = components[block._type] ?? shared[block._type];
+		if (!Component) throw new Error(`No component for the section type "${block._type}". Pass it to <Sections components={{ ${block._type}: … }} />.`);
+		return { block, Component };
+	});
+---
+
+{drawn.map(({ block, Component }) => <Component block={block} />)}

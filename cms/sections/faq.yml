@@ -1,0 +1,16 @@
+# Shared section: Questions and answers (components/sections/Faq.astro). Use it as `- !section faq`.
+name: faq
+label: Questions and answers
+summary: '{{heading}}'
+hint: "Also sent to Google as FAQ data."
+fields:
+  - !core hidden
+  - { name: heading, label: Heading, default: Frequently asked questions }
+  - name: items
+    label: Questions
+    label_singular: Question
+    widget: list
+    summary: '{{fields.question}}'
+    fields:
+      - { name: question, label: Question }
+      - { name: answer, label: Answer, widget: text }

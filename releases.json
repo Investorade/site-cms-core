@@ -20,5 +20,6 @@
         "contents": "# What this site uses from the shared CMS core (see the site-cms-core README, \"Site type and features\").\n# Added by the 1.3.0 update: sites made before it are parks with every feature on.\nsite_type: park\nfeatures:\n  blog: true\n  popups: true\n  ai_connector: true\n"
       }
     ]
-  }
+  },
+  "1.4.0": {}
 }

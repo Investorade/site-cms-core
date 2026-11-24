@@ -1,5 +1,21 @@
 # Release notes
 
+## 1.4.0
+
+Shared page sections. A site can use section types from the core instead of building its own: Hero, Text, Image and
+text, Cards, Gallery, Questions and answers, Call to action and Contact details. Each one brings its CMS fields, what
+it may hold (also for the AI connector) and a plain look that takes the site's colours and sizes, so a fix or a new
+option in a shared section reaches every site that uses it with an update.
+
+- In the site's `cms/sections.yml`: `- !section hero` (and so on), next to the site's own section types.
+- In its schemas: `coreSections.hero` from `@investorade/site-cms-core/sections`.
+- On its pages: `<Sections>` from `@investorade/site-cms-core/components/Sections.astro`, with the site's own section
+  components passed in; a site can also draw any shared section with its own component.
+- New options on top of the starter's sections: the hero's text position (left or centre) and the call to action's
+  colour (brand or light).
+
+Nothing changes on a site until it uses them, so the update makes no changes to the site's files.
+
 ## 1.3.0 (2026-11-24)
 
 The CMS core is no longer park-specific. A site says what it is and what it uses in `cms/features.yml`:

@@ -10,10 +10,13 @@ import type { AstroIntegration } from 'astro';
  *     a divider
  *     core settings.yml, with the site's settings.yml files after the core's
  *
- * In any of these files, `!core <name>` is a shared field set from the core's fields.yml (`fields: !core image`).
+ * In any of these files, `!core <name>` is a shared field set from the core's fields.yml (`fields: !core image`), and in
+ * the site's sections.yml `- !section <name>` is a shared section type (the core's cms/sections/<name>.yml).
  * The dev server serves the result at /admin/config.yml, and the build writes it to dist/admin/config.yml.
  */
 type Obj = Record<string, unknown>;
+/** The shared section types (cms/sections/<name>.yml), by name. */
+export declare function coreSectionTypes(): string[];
 /** The site's CMS config as data. `root` is the site's folder. */
 export declare function readCmsConfig(root: string): Obj;
 export type SiteType = 'park' | 'business';
