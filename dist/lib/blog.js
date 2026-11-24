@@ -26,9 +26,14 @@ export async function getPosts() {
 export async function getAllPosts() {
     const posts = await getCollection('posts');
     // An empty meta description uses the excerpt (or the start of the post), as Rank Math does.
-    for (const post of posts)
+    for (const post of posts) {
+        // One kind of line ending, whatever the file was saved with (a post saved on Windows has \r\n), so the FAQ data
+        // and other text checks read every post the same way.
+        if (post.body)
+            post.body = post.body.replace(/\r\n?/g, '\n');
         if (!post.data.seo.description)
             post.data.seo.description = excerptOf(post, 160);
+    }
     return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
 /** A post's address: /<slug>/ at the site root, as on WordPress. */

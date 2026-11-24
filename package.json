@@ -1,6 +1,6 @@
 {
   "name": "@investorade/site-cms-core",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Shared, versioned CMS core for Investorade sites (Astro + Sveltia).",
   "type": "module",
   "license": "UNLICENSED",

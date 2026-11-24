@@ -1,5 +1,10 @@
 # Release notes
 
+## 1.1.1 (2026-11-24)
+
+Blog posts are read the same way whatever line endings their file has. Before, a post saved with Windows line endings
+lost its FAQ data for Google in local builds (sites built on Cloudflare were not affected).
+
 ## 1.1.0 (2026-11-24)
 
 The CMS config is now shared. A site's `/admin/config.yml` is put together when it builds (and by the dev server) from the
