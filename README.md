@@ -74,16 +74,29 @@ build). Don't keep a `public/admin/config.yml`: the build stops if there is one.
 no pop-ups):
 
 ```yaml
-site_type: park            # park | business: the examples in the CMS hints (cms/wording.yml)
+site_type: park            # park | business | medical: the examples in the CMS hints (cms/wording.yml)
 features:
+  pages: true              # pages made of sections (false: the site's own page collections in cms/collections.yml)
   blog: true               # the Blog collection
   popups: true             # Book Now / exit pop-ups: #book-now in link hints
-  ai_connector: true       # Site settings → AI connector
+  ai_connector: true       # Site settings → AI connector (needs pages made of sections)
+blog_path: /               # where posts live: / (/<post>/) or e.g. /blog/ (/blog/<post>/)
 wording:                   # optional: the site's own examples
   keyword_example: "med spa Dallas, Botox Dallas"
 ```
 
 The examples use {name}, {city} and {region} from the site's `src/data/site.json`.
+
+More site files the core reads when present: `cms/collections.yml` (the site's own collections, after the Blog) and
+`cms/post-fields.yml` (extra post fields, before SEO; add the same fields with `createPostSchema({ siteName, extend })`).
+
+## Sites on Cloudflare Pages
+
+A site whose domain's DNS is outside Cloudflare stays on Pages (Workers need the DNS in Cloudflare). The AI connector
+route is then a Pages Functions middleware: `functions/_middleware.js` → `export { onRequest } from
+'@investorade/site-cms-core/pages';`, `public/_routes.json` limiting Functions to the connector's paths and the site's own
+routes, and the service binding CMS_MCP → dadscampgrounds-cms-auth (entrypoint ParkMcp). Pages builds every branch
+with a preview address, so Updates work the same way.
 
 ## Making a release
 

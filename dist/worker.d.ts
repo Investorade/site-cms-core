@@ -1,5 +1,5 @@
 /**
- * The park site's Worker. Almost everything is static files (Cloudflare serves dist/ before this runs). Only the AI
+ * The site's Worker (sites on Cloudflare Workers; sites on Cloudflare Pages use ./pages-function.ts). Almost everything is static files (Cloudflare serves dist/ before this runs). Only the AI
  * connector's paths come here (wrangler.jsonc → assets.run_worker_first):
  * - /admin/mcp: the MCP endpoint people add to their AI app (Claude, ChatGPT…) to work on this park's pages and posts;
  * - /.well-known/oauth-protected-resource…, /.well-known/oauth-authorization-server…: how AI apps find the sign-in.
@@ -13,12 +13,16 @@
 interface Fetcher {
     fetch(request: Request): Promise<Response>;
 }
-interface Env {
+export interface Env {
     ASSETS: Fetcher;
     CMS_MCP: Fetcher & {
         serve(request: Request, siteFile: (path: string) => Promise<Response>): Promise<Response>;
     };
 }
+/** Whether a path is one of the AI connector's (the rest of the site is static files). */
+export declare const isConnectorPath: (pathname: string) => boolean;
+/** Pass an AI connector request (without cookies) to the CMS login, with the two built files it may read. */
+export declare function serveConnector(request: Request, env: Env): Promise<Response>;
 declare const _default: {
     fetch(request: Request, env: Env): Promise<Response>;
 };

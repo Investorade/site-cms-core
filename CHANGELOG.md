@@ -1,5 +1,18 @@
 # Release notes
 
+## 1.4.0 (2026-11-25)
+
+For sites that aren't built like Henderson (the first is Injectco, a medical site on Cloudflare Pages). Nothing changes
+for sites that don't use the new settings.
+
+- `site_type: medical`: medical examples in the CMS hints.
+- `features.pages: false`: no pages made of sections; the site lists its own page collections in `cms/collections.yml`
+  (e.g. one data file per page). The AI connector needs pages made of sections, so it is off for such a site.
+- `blog_path` (e.g. `/blog/`): posts at /blog/<post>/ instead of the site root.
+- Extra post fields: `cms/post-fields.yml` (CMS fields, shown before SEO) and `createPostSchema({ siteName, extend })`.
+- Sites on Cloudflare Pages (a domain whose DNS is outside Cloudflare): `@investorade/site-cms-core/pages`, the AI
+  connector route as a Pages Functions middleware.
+
 ## 1.3.0 (2026-11-24)
 
 The CMS core is no longer park-specific. A site says what it is and what it uses in `cms/features.yml`:

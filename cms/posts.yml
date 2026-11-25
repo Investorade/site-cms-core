@@ -11,7 +11,7 @@ create: true
 slug: '{{slug}}'
 identifier_field: title
 summary: '{{title}}'
-description: "Each post is at the site root, e.g. [[post_address_example]] (as on WordPress); the list is at /blog/. The list itself is the Blog page under Pages (heading, intro, photo, paging, sidebar card)."
+description: "[[post_location]]; the list is at /blog/. The list itself is the Blog page under Pages (heading, intro, photo, paging, sidebar card)."
 thumbnail: image.src
 table_columns:
   - title

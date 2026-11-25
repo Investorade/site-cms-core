@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'astro/zod';
 import YAML from 'yaml';
-import { readCmsConfig } from "../cms-config.js";
+import { readCmsConfig, readSiteProfile } from "../cms-config.js";
 /**
  * Writes dist/admin/content-rules.json: what a page and a blog post may contain, for the CMS's AI connector
  * (dadscampgrounds-cms-auth, /admin/mcp on the park's address). It checks every page or post an AI writes against
@@ -91,13 +91,18 @@ export default function contentRules({ schemas }) {
             // catches the rest (files edited directly). Astro itself only warns when two posts share a URL slug, and drops one.
             'astro:build:start': () => {
                 const root = process.cwd();
+                const profile = readSiteProfile(root);
+                // Posts under their own path (/blog/<post>/) only have to differ from each other.
+                const atRoot = profile.blog_path === '/';
                 const seen = new Map();
+                const seenPosts = new Map();
                 const problems = [];
                 const reserved = new Set(['admin', 'api', 'kit', 'uploads', '_astro']);
                 for (const [folder, label, useSlug] of [['src/content/pages', 'page', false], ['src/content/posts', 'post', true]]) {
                     const dir = path.join(root, folder);
-                    if (!fs.existsSync(dir))
+                    if (!fs.existsSync(dir) || (label === 'page' && !profile.features.pages))
                         continue;
+                    const seen_ = label === 'post' && !atRoot ? seenPosts : seen;
                     for (const name of fs.readdirSync(dir).filter((n) => n.endsWith('.md')).sort()) {
                         const base = name.slice(0, -3);
                         if (folder.endsWith('pages') && base === 'index')
@@ -106,12 +111,13 @@ export default function contentRules({ schemas }) {
                         const data = (fm ? YAML.parse(fm[1]) : {});
                         const address = String((useSlug && typeof data.slug === 'string' && data.slug.trim()) || base).toLowerCase();
                         const where = `${folder}/${name}`;
-                        if (reserved.has(address))
-                            problems.push(`The ${label} ${where} has the address /${address}/, which the site uses itself.`);
-                        if (seen.has(address))
-                            problems.push(`The ${label} ${where} has the address /${address}/, which ${seen.get(address)} already uses.`);
+                        const shown = label === 'post' ? `${profile.blog_path}${address}/` : `/${address}/`;
+                        if ((label === 'page' || atRoot) && reserved.has(address))
+                            problems.push(`The ${label} ${where} has the address ${shown}, which the site uses itself.`);
+                        if (seen_.has(address))
+                            problems.push(`The ${label} ${where} has the address ${shown}, which ${seen_.get(address)} already uses.`);
                         else
-                            seen.set(address, where);
+                            seen_.set(address, where);
                     }
                 }
                 if (problems.length)
@@ -120,6 +126,12 @@ export default function contentRules({ schemas }) {
             'astro:build:done': ({ dir, logger }) => {
                 const root = process.cwd();
                 const outDir = fileURLToPath(dir);
+                // The AI connector works on pages made of sections and on posts: no rules for a site without them.
+                const profile = readSiteProfile(root);
+                if (!profile.features.ai_connector || !schemas.pages) {
+                    logger.info('admin/content-rules.json: not written (the AI connector is off for this site).');
+                    return;
+                }
                 const config = readCmsConfig(root);
                 const collection = (name) => config.collections.find((c) => c.name === name);
                 const cmsFields = (name) => (collection(name)?.fields ?? []).map(simplifyField);
@@ -154,7 +166,7 @@ export default function contentRules({ schemas }) {
                         posts: {
                             folder: 'src/content/posts',
                             // /<slug>/: the front matter's slug when set, otherwise the file name.
-                            address: '/{slug|file}/',
+                            address: `${profile.blog_path}{slug|file}/`,
                             body: 'markdown',
                             schema: titleOnly(jsonSchema(schemas.posts)),
                             cms: cmsFields('posts'),

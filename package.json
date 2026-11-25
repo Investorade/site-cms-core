@@ -1,19 +1,40 @@
 {
   "name": "@investorade/site-cms-core",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Shared, versioned CMS core for Investorade sites (Astro + Sveltia).",
   "type": "module",
   "license": "UNLICENSED",
   "repository": "github:Investorade/site-cms-core",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./schemas": { "types": "./dist/schemas.d.ts", "default": "./dist/schemas.js" },
-    "./worker": { "types": "./dist/worker.d.ts", "default": "./dist/worker.js" },
-    "./lib/*": { "types": "./dist/lib/*.d.ts", "default": "./dist/lib/*.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "default": "./dist/schemas.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "default": "./dist/worker.js"
+    },
+    "./pages": {
+      "types": "./dist/pages-function.d.ts",
+      "default": "./dist/pages-function.js"
+    },
+    "./lib/*": {
+      "types": "./dist/lib/*.d.ts",
+      "default": "./dist/lib/*.js"
+    },
     "./components/*": "./components/*",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "components", "cms", "README.md"],
+  "files": [
+    "dist",
+    "components",
+    "cms",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

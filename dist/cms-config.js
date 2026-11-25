@@ -52,11 +52,27 @@ export function readCmsConfig(root) {
         throw new Error('cms/sections.yml must be a list of section types (- name: hero …).');
     if (!Array.isArray(siteSettings))
         throw new Error('cms/settings.yml must be a list of Site settings files (- name: header …).');
-    const { backend: siteBackend, collections: siteCollections = [], ...siteTop } = siteConfig;
+    const { backend: siteBackend, collections: inlineCollections = [], ...siteTop } = siteConfig;
     if (!isObj(siteBackend) || typeof siteBackend.repo !== 'string')
         throw new Error('cms/site.yml needs the GitHub repo: backend: { repo: Owner/name }.');
-    if (!Array.isArray(siteCollections))
+    if (!Array.isArray(inlineCollections))
         throw new Error('cms/site.yml: collections must be a list.');
+    // The site's own collections: in site.yml (collections:) and/or cms/collections.yml (a list), e.g. pages built from
+    // one data file each, for sites whose pages aren't made of sections.
+    const fileCollections = site('collections.yml') ?? [];
+    if (!Array.isArray(fileCollections))
+        throw new Error('cms/collections.yml must be a list of collections (- name: treatments …).');
+    const siteCollections = [...inlineCollections, ...fileCollections];
+    // Extra post fields (cms/post-fields.yml, a list): shown before the post's SEO fields. The site's post schema adds
+    // the same fields (createPostSchema({ extend })).
+    const postFields = site('post-fields.yml') ?? [];
+    if (!Array.isArray(postFields))
+        throw new Error('cms/post-fields.yml must be a list of fields (- name: author …).');
+    if (postFields.length) {
+        const fields = posts.fields;
+        const at = fields.findIndex((f) => f.name === 'seo');
+        fields.splice(at < 0 ? fields.length : at, 0, ...postFields);
+    }
     // Page sections: the site's types. A site without sections has no "Page sections" field.
     const pageFields = pages.fields;
     const blocks = pageFields.find((f) => f.name === 'content_blocks');
@@ -81,20 +97,24 @@ export function readCmsConfig(root) {
         ...base,
         backend: { ...base.backend, ...siteBackend },
         ...siteTop,
-        collections: [pages, ...(profile.features.blog ? [posts] : []), ...siteCollections, { divider: true }, settings],
+        collections: [...(profile.features.pages ? [pages] : []), ...(profile.features.blog ? [posts] : []), ...siteCollections, { divider: true }, settings],
     };
     return fillWording(config, wordingFor(root, profile));
 }
+const SITE_TYPES = ['park', 'business', 'medical'];
+const FEATURES = ['pages', 'blog', 'popups', 'ai_connector'];
 /**
  * The site's cms/features.yml: its type and which shared parts it uses. Without the file a site is a "business" site
  * with the blog and the AI connector and without pop-ups. (Sites made before 1.3.0 get the file from the 1.3.0
  * update, as "park" sites.)
  *
- *   site_type: park            # park | business: the examples in the CMS's hints
+ *   site_type: park            # park | business | medical: the examples in the CMS's hints
  *   features:
+ *     pages: true              # Pages made of sections (off: the site has its own page collections, cms/collections.yml)
  *     blog: true               # the Blog collection
  *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
- *     ai_connector: true       # Site settings → AI connector
+ *     ai_connector: true       # Site settings → AI connector (it needs pages made of sections)
+ *   blog_path: /               # where posts live: / (/<post>/, the default) or e.g. /blog/ (/blog/<post>/)
  *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
  *     image_alt_example: "…"
  */
@@ -104,28 +124,35 @@ export function readSiteProfile(root) {
     if (raw !== null && !isObj(raw))
         throw new Error('cms/features.yml must hold settings (site_type:, features: …), not a list.');
     const data = raw ?? {};
-    const type = data.site_type ?? 'business';
-    if (type !== 'park' && type !== 'business')
-        throw new Error(`cms/features.yml: site_type must be park or business, not "${String(type)}".`);
+    const type = (data.site_type ?? 'business');
+    if (!SITE_TYPES.includes(type))
+        throw new Error(`cms/features.yml: site_type must be ${SITE_TYPES.join(', ')}; not "${String(type)}".`);
     const features = (data.features ?? {});
     if (!isObj(features))
         throw new Error('cms/features.yml: features must be a list of switches (blog: true …).');
     for (const [key, value] of Object.entries(features)) {
-        if (!['blog', 'popups', 'ai_connector'].includes(key))
-            throw new Error(`cms/features.yml: unknown feature "${key}" (there are blog, popups, ai_connector).`);
+        if (!FEATURES.includes(key))
+            throw new Error(`cms/features.yml: unknown feature "${key}" (there are ${FEATURES.join(', ')}).`);
         if (typeof value !== 'boolean')
             throw new Error(`cms/features.yml: ${key} must be true or false.`);
     }
+    const blogPath = data.blog_path ?? '/';
+    if (typeof blogPath !== 'string' || !/^\/([a-z0-9-]+\/)*$/.test(blogPath))
+        throw new Error('cms/features.yml: blog_path must look like / or /blog/.');
     const wording = (data.wording ?? {});
     if (!isObj(wording) || Object.values(wording).some((v) => typeof v !== 'string'))
         throw new Error('cms/features.yml: wording must map names to texts.');
+    const pages = features.pages !== false;
     return {
         site_type: type,
         features: {
+            pages,
             blog: features.blog !== false,
             popups: typeof features.popups === 'boolean' ? features.popups : type === 'park',
-            ai_connector: features.ai_connector !== false,
+            // The AI connector works on pages made of sections: off when there are none.
+            ai_connector: pages && features.ai_connector !== false,
         },
+        blog_path: blogPath,
         wording: wording,
     };
 }
@@ -154,6 +181,11 @@ function wordingFor(root, profile) {
     const values = { name: info.name || 'your business', city, region, 'city-slug': slug(city), 'region-slug': slug(region) };
     for (const key of Object.keys(words))
         words[key] = words[key].replace(/\{([\w-]+)\}/g, (m, k) => values[k] ?? m).replace(/ +/g, ' ').replace(/-+\//g, '/');
+    // Posts at the root (/<post>/, as on WordPress) or under the site's blog path (/blog/<post>/).
+    const post = profile.blog_path === '/' ? words.post_address_example : profile.blog_path.replace(/\/$/, '') + words.post_address_example;
+    words.post_address_example = post;
+    words.post_location =
+        profile.blog_path === '/' ? `Each post is at the site root, e.g. ${post} (as on WordPress)` : `Each post is at ${profile.blog_path}<its address>/, e.g. ${post}`;
     return words;
 }
 function fillWording(value, words) {

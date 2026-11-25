@@ -13,6 +13,15 @@ declare module 'virtual:site-cms-core/popups' {
 	export default value;
 }
 
+declare module 'virtual:site-cms-core/profile' {
+	const value: {
+		site_type: 'park' | 'business' | 'medical';
+		features: { pages: boolean; blog: boolean; popups: boolean; ai_connector: boolean };
+		blog_path: string;
+	};
+	export default value;
+}
+
 declare module '@site/*' {
 	const value: any;
 	export default value;

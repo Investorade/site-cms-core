@@ -1,6 +1,7 @@
 # Examples in the CMS's hints, per site type (cms/features.yml → site_type). The core's CMS files use them as
 # [[name]]. {name}, {city} and {region} come from the site's src/data/site.json ({city-slug} and {region-slug} as they
-# appear in addresses). A site can replace any of them in cms/features.yml → wording.
+# appear in addresses). A site can replace any of them in cms/features.yml → wording. Post addresses get the
+# site's blog_path in front.
 
 park:
   image_alt_example: "RV parked under pine trees at {name}"
@@ -11,3 +12,8 @@ business:
   image_alt_example: "Team member welcoming a customer at {name}"
   keyword_example: "{name}, {city} {region}"
   post_address_example: "/how-to-choose-the-right-service/"
+
+medical:
+  image_alt_example: "Nurse injector treating a patient at {name} in {city}"
+  keyword_example: "Botox {city} {region}, med spa {city}"
+  post_address_example: "/what-to-expect-after-your-first-treatment/"

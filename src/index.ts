@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
-import cmsConfig from './cms-config.ts';
+import cmsConfig, { readSiteProfile } from './cms-config.ts';
 import contentRules, { type ContentRulesOptions } from './integrations/content-rules.ts';
 import formsCheck from './integrations/forms-check.ts';
 import seoFiles from './integrations/seo-files.ts';
@@ -24,7 +24,7 @@ import seoFiles from './integrations/seo-files.ts';
  * e.g. @site/data/site.json).
  */
 export type SiteCmsCoreOptions = ContentRulesOptions;
-export { readCmsConfig, cmsConfigYaml } from './cms-config.ts';
+export { readCmsConfig, cmsConfigYaml, readSiteProfile } from './cms-config.ts';
 
 function setup(): AstroIntegration {
 	return {
@@ -42,6 +42,16 @@ function setup(): AstroIntegration {
 								load: (id: string) => {
 									if (id !== '\0site-cms-core-popups') return undefined;
 									return `export default ${fs.existsSync(popupsFile) ? fs.readFileSync(popupsFile, 'utf8') : '{}'};`;
+								},
+							},
+							// virtual:site-cms-core/profile: the site's type, features and blog path (cms/features.yml).
+							{
+								name: 'site-cms-core/profile',
+								resolveId: (id: string) => (id === 'virtual:site-cms-core/profile' ? id : undefined),
+								load: (id: string) => {
+									if (id !== 'virtual:site-cms-core/profile') return undefined;
+									const { wording, ...profile } = readSiteProfile(fileURLToPath(config.root));
+									return `export default ${JSON.stringify(profile)};`;
 								},
 							},
 						],

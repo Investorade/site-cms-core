@@ -1,5 +1,5 @@
 /**
- * The park site's Worker. Almost everything is static files (Cloudflare serves dist/ before this runs). Only the AI
+ * The site's Worker (sites on Cloudflare Workers; sites on Cloudflare Pages use ./pages-function.ts). Almost everything is static files (Cloudflare serves dist/ before this runs). Only the AI
  * connector's paths come here (wrangler.jsonc → assets.run_worker_first):
  * - /admin/mcp: the MCP endpoint people add to their AI app (Claude, ChatGPT…) to work on this park's pages and posts;
  * - /.well-known/oauth-protected-resource…, /.well-known/oauth-authorization-server…: how AI apps find the sign-in.
@@ -14,7 +14,7 @@ interface Fetcher {
 	fetch(request: Request): Promise<Response>;
 }
 
-interface Env {
+export interface Env {
 	ASSETS: Fetcher;
 	CMS_MCP: Fetcher & { serve(request: Request, siteFile: (path: string) => Promise<Response>): Promise<Response> };
 }
@@ -23,15 +23,22 @@ const SITE_FILES = new Set(['/admin/content-rules.json', '/admin/seo-report.json
 
 const CONNECTOR_PATH = /^\/(admin\/mcp(\/.*)?|\.well-known\/oauth-(protected-resource|authorization-server)(\/.*)?)$/;
 
+/** Whether a path is one of the AI connector's (the rest of the site is static files). */
+export const isConnectorPath = (pathname: string) => CONNECTOR_PATH.test(pathname);
+
+/** Pass an AI connector request (without cookies) to the CMS login, with the two built files it may read. */
+export function serveConnector(request: Request, env: Env): Promise<Response> {
+	const headers = new Headers(request.headers);
+	headers.delete('Cookie');
+	const forward = new Request(request, { headers });
+	const siteFile = async (path: string) =>
+		SITE_FILES.has(path) ? env.ASSETS.fetch(new Request(new URL(path, request.url))) : new Response('Not found', { status: 404 });
+	return env.CMS_MCP.serve(forward, siteFile);
+}
+
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
-		const { pathname } = new URL(request.url);
-		if (!CONNECTOR_PATH.test(pathname)) return env.ASSETS.fetch(request);
-		const headers = new Headers(request.headers);
-		headers.delete('Cookie');
-		const forward = new Request(request, { headers });
-		const siteFile = async (path: string) =>
-			SITE_FILES.has(path) ? env.ASSETS.fetch(new Request(new URL(path, request.url))) : new Response('Not found', { status: 404 });
-		return env.CMS_MCP.serve(forward, siteFile);
+		if (!isConnectorPath(new URL(request.url).pathname)) return env.ASSETS.fetch(request);
+		return serveConnector(request, env);
 	},
 };

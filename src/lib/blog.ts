@@ -1,4 +1,5 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import profile from 'virtual:site-cms-core/profile';
 import type { BlogListBlock } from '../schemas.ts';
 
 export type Post = CollectionEntry<'posts'>;
@@ -15,7 +16,8 @@ const DEFAULT_LIST: BlogListBlock = {
 
 /** The Blog page's "Blog posts list" section (Pages → Blog): header, paging and the post sidebar card. */
 export async function blogList(): Promise<BlogListBlock> {
-	const page = await getEntry('pages', 'blog');
+	// Sites without pages made of sections have no Blog page: the defaults then.
+	const page = profile.features.pages ? await getEntry('pages', 'blog') : undefined;
 	// The visible one, else a hidden one (its texts still apply), else defaults.
 	const lists = ((page?.data.content_blocks ?? []) as { _type: string }[]).filter((b): b is BlogListBlock => b._type === 'blog_list');
 	const block = lists.find((b) => !b.hidden) ?? lists[0];
@@ -43,8 +45,8 @@ export async function getAllPosts(): Promise<Post[]> {
 	return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
 
-/** A post's address: /<slug>/ at the site root, as on WordPress. */
-export const postUrl = (post: Post) => `/${post.id}/`;
+/** A post's address: /<slug>/ at the site root, as on WordPress, or under the site's blog path (cms/features.yml). */
+export const postUrl = (post: Post) => `${profile.blog_path}${post.id}/`;
 
 /** "October 20, 2025" (US English, as on the WordPress site), using the date as written, not the build's time zone. */
 export const formatDate = (date: Date) =>

@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import cmsConfig from "./cms-config.js";
+import cmsConfig, { readSiteProfile } from "./cms-config.js";
 import contentRules from "./integrations/content-rules.js";
 import formsCheck from "./integrations/forms-check.js";
 import seoFiles from "./integrations/seo-files.js";
-export { readCmsConfig, cmsConfigYaml } from "./cms-config.js";
+export { readCmsConfig, cmsConfigYaml, readSiteProfile } from "./cms-config.js";
 function setup() {
     return {
         name: 'site-cms-core',
@@ -22,6 +22,17 @@ function setup() {
                                     if (id !== '\0site-cms-core-popups')
                                         return undefined;
                                     return `export default ${fs.existsSync(popupsFile) ? fs.readFileSync(popupsFile, 'utf8') : '{}'};`;
+                                },
+                            },
+                            // virtual:site-cms-core/profile: the site's type, features and blog path (cms/features.yml).
+                            {
+                                name: 'site-cms-core/profile',
+                                resolveId: (id) => (id === 'virtual:site-cms-core/profile' ? id : undefined),
+                                load: (id) => {
+                                    if (id !== 'virtual:site-cms-core/profile')
+                                        return undefined;
+                                    const { wording, ...profile } = readSiteProfile(fileURLToPath(config.root));
+                                    return `export default ${JSON.stringify(profile)};`;
                                 },
                             },
                         ],

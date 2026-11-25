@@ -10,7 +10,7 @@ export declare function getPosts(): Promise<Post[]>;
  * they're hidden from search engines (noindex) and left out of the blog list, the sidebar and the sitemap.
  */
 export declare function getAllPosts(): Promise<Post[]>;
-/** A post's address: /<slug>/ at the site root, as on WordPress. */
+/** A post's address: /<slug>/ at the site root, as on WordPress, or under the site's blog path (cms/features.yml). */
 export declare const postUrl: (post: Post) => string;
 /** "October 20, 2025" (US English, as on the WordPress site), using the date as written, not the build's time zone. */
 export declare const formatDate: (date: Date) => string;

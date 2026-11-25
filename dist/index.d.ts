@@ -18,5 +18,5 @@ import { type ContentRulesOptions } from './integrations/content-rules.ts';
  * e.g. @site/data/site.json).
  */
 export type SiteCmsCoreOptions = ContentRulesOptions;
-export { readCmsConfig, cmsConfigYaml } from './cms-config.ts';
+export { readCmsConfig, cmsConfigYaml, readSiteProfile } from './cms-config.ts';
 export default function siteCmsCore(options: SiteCmsCoreOptions): AstroIntegration[];

@@ -1,4 +1,5 @@
 import { getCollection, getEntry } from 'astro:content';
+import profile from 'virtual:site-cms-core/profile';
 const DEFAULT_LIST = {
     _type: 'blog_list',
     hidden: false,
@@ -10,7 +11,8 @@ const DEFAULT_LIST = {
 };
 /** The Blog page's "Blog posts list" section (Pages → Blog): header, paging and the post sidebar card. */
 export async function blogList() {
-    const page = await getEntry('pages', 'blog');
+    // Sites without pages made of sections have no Blog page: the defaults then.
+    const page = profile.features.pages ? await getEntry('pages', 'blog') : undefined;
     // The visible one, else a hidden one (its texts still apply), else defaults.
     const lists = (page?.data.content_blocks ?? []).filter((b) => b._type === 'blog_list');
     const block = lists.find((b) => !b.hidden) ?? lists[0];
@@ -37,8 +39,8 @@ export async function getAllPosts() {
     }
     return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
-/** A post's address: /<slug>/ at the site root, as on WordPress. */
-export const postUrl = (post) => `/${post.id}/`;
+/** A post's address: /<slug>/ at the site root, as on WordPress, or under the site's blog path (cms/features.yml). */
+export const postUrl = (post) => `${profile.blog_path}${post.id}/`;
 /** "October 20, 2025" (US English, as on the WordPress site), using the date as written, not the build's time zone. */
 export const formatDate = (date) => date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 /** Minutes to read at about 220 words a minute, never less than 1. */
