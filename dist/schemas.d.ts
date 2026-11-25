@@ -128,13 +128,10 @@ export declare function createPageSchema<B extends z.ZodType>({ siteName, conten
     };
     content_blocks: z.core.output<B>[];
 }>>;
-/**
- * Blog posts (CMS → Blog). Each one is served at the site root, /<slug>/, like WordPress posts, so old links and
- * rankings carry over; the archive is /blog/. `slug` in the front matter overrides the file name.
- */
-export declare function createPostSchema({ siteName }: {
+export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteName, extend }: {
     siteName: string;
-}): z.ZodPipe<z.ZodObject<{
+    extend?: E;
+}): z.ZodPipe<z.ZodObject<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
     title: z.ZodString;
     slug: z.ZodOptional<z.ZodString>;
     date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
@@ -156,38 +153,73 @@ export declare function createPostSchema({ siteName }: {
         hide_from_search: z.ZodDefault<z.ZodBoolean>;
         robots: z.ZodDefault<z.ZodString>;
     }, z.core.$strip>, unknown>;
-}, z.core.$strip>, z.ZodTransform<{
-    seo: {
-        og_type: string;
-        og_title: string;
-        og_image: {
-            src: string;
-            alt: string;
-            width?: number | undefined;
-            height?: number | undefined;
-        } | undefined;
-        date_published: string;
-        date_modified: string;
-        canonical: string | undefined;
-        hide_from_search: boolean;
-        robots: string;
-        title: string;
-        description: string;
-        focus_keyword: string | undefined;
-    };
-    title: string;
-    date: Date;
-    draft: boolean;
-    excerpt: string;
-    slug?: string | undefined;
-    updated?: Date | undefined;
-    image?: {
-        src: string;
-        alt: string;
-        width?: number | undefined;
-        height?: number | undefined;
-    } | undefined;
-}, {
+} & { -readonly [P in keyof E]: E[P]; } : ({
+    title: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+    updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+    draft: z.ZodDefault<z.ZodBoolean>;
+    image: z.ZodOptional<z.ZodObject<{
+        src: z.ZodString;
+        alt: z.ZodDefault<z.ZodString>;
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
+    excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    seo: z.ZodPreprocess<z.ZodObject<{
+        title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+    }, z.core.$strip>, unknown>;
+    advanced: z.ZodPreprocess<z.ZodObject<{
+        hide_from_search: z.ZodDefault<z.ZodBoolean>;
+        robots: z.ZodDefault<z.ZodString>;
+    }, z.core.$strip>, unknown>;
+} extends infer T_1 extends z.core.util.SomeObject ? { [K in keyof T_1 as K extends keyof E ? never : K]: T_1[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T ? { [k in keyof T]: T[k]; } : never, z.core.$strip>, z.ZodTransform<Awaited<Omit<z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+    title: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+    updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+    draft: z.ZodDefault<z.ZodBoolean>;
+    image: z.ZodOptional<z.ZodObject<{
+        src: z.ZodString;
+        alt: z.ZodDefault<z.ZodString>;
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
+    excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    seo: z.ZodPreprocess<z.ZodObject<{
+        title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+    }, z.core.$strip>, unknown>;
+    advanced: z.ZodPreprocess<z.ZodObject<{
+        hide_from_search: z.ZodDefault<z.ZodBoolean>;
+        robots: z.ZodDefault<z.ZodString>;
+    }, z.core.$strip>, unknown>;
+} & { -readonly [P in keyof E]: E[P]; } : ({
+    title: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+    updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+    draft: z.ZodDefault<z.ZodBoolean>;
+    image: z.ZodOptional<z.ZodObject<{
+        src: z.ZodString;
+        alt: z.ZodDefault<z.ZodString>;
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
+    excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    seo: z.ZodPreprocess<z.ZodObject<{
+        title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+    }, z.core.$strip>, unknown>;
+    advanced: z.ZodPreprocess<z.ZodObject<{
+        hide_from_search: z.ZodDefault<z.ZodBoolean>;
+        robots: z.ZodDefault<z.ZodString>;
+    }, z.core.$strip>, unknown>;
+} extends infer T_3 extends z.core.util.SomeObject ? { [K in keyof T_3 as K extends keyof E ? never : K]: T_3[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T_2 ? { [k in keyof T_2]: T_2[k]; } : never, {}> & {
     title: string;
     date: Date;
     draft: boolean;
@@ -209,6 +241,196 @@ export declare function createPostSchema({ siteName }: {
         width?: number | undefined;
         height?: number | undefined;
     } | undefined;
-}>>;
+}, "seo" | "advanced"> & {
+    seo: {
+        og_type: string;
+        og_title: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+            title: z.ZodString;
+            slug: z.ZodOptional<z.ZodString>;
+            date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+            updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+            draft: z.ZodDefault<z.ZodBoolean>;
+            image: z.ZodOptional<z.ZodObject<{
+                src: z.ZodString;
+                alt: z.ZodDefault<z.ZodString>;
+                width: z.ZodOptional<z.ZodNumber>;
+                height: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>>;
+            excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+            seo: z.ZodPreprocess<z.ZodObject<{
+                title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+            }, z.core.$strip>, unknown>;
+            advanced: z.ZodPreprocess<z.ZodObject<{
+                hide_from_search: z.ZodDefault<z.ZodBoolean>;
+                robots: z.ZodDefault<z.ZodString>;
+            }, z.core.$strip>, unknown>;
+        } & { -readonly [P in keyof E]: E[P]; } : ({
+            title: z.ZodString;
+            slug: z.ZodOptional<z.ZodString>;
+            date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+            updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+            draft: z.ZodDefault<z.ZodBoolean>;
+            image: z.ZodOptional<z.ZodObject<{
+                src: z.ZodString;
+                alt: z.ZodDefault<z.ZodString>;
+                width: z.ZodOptional<z.ZodNumber>;
+                height: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>>;
+            excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+            seo: z.ZodPreprocess<z.ZodObject<{
+                title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+            }, z.core.$strip>, unknown>;
+            advanced: z.ZodPreprocess<z.ZodObject<{
+                hide_from_search: z.ZodDefault<z.ZodBoolean>;
+                robots: z.ZodDefault<z.ZodString>;
+            }, z.core.$strip>, unknown>;
+        } extends infer T_5 extends z.core.util.SomeObject ? { [K in keyof T_5 as K extends keyof E ? never : K]: T_5[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T_4 ? { [k in keyof T_4]: T_4[k]; } : never, {}> & {
+            title: string;
+            date: Date;
+            draft: boolean;
+            excerpt: string;
+            seo: {
+                title: string;
+                description: string;
+                focus_keyword: string | undefined;
+            };
+            advanced: {
+                hide_from_search: boolean;
+                robots: string;
+            };
+            slug?: string | undefined;
+            updated?: Date | undefined;
+            image?: {
+                src: string;
+                alt: string;
+                width?: number | undefined;
+                height?: number | undefined;
+            } | undefined;
+        })["title"];
+        og_image: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+            title: z.ZodString;
+            slug: z.ZodOptional<z.ZodString>;
+            date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+            updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+            draft: z.ZodDefault<z.ZodBoolean>;
+            image: z.ZodOptional<z.ZodObject<{
+                src: z.ZodString;
+                alt: z.ZodDefault<z.ZodString>;
+                width: z.ZodOptional<z.ZodNumber>;
+                height: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>>;
+            excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+            seo: z.ZodPreprocess<z.ZodObject<{
+                title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+            }, z.core.$strip>, unknown>;
+            advanced: z.ZodPreprocess<z.ZodObject<{
+                hide_from_search: z.ZodDefault<z.ZodBoolean>;
+                robots: z.ZodDefault<z.ZodString>;
+            }, z.core.$strip>, unknown>;
+        } & { -readonly [P in keyof E]: E[P]; } : ({
+            title: z.ZodString;
+            slug: z.ZodOptional<z.ZodString>;
+            date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+            updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+            draft: z.ZodDefault<z.ZodBoolean>;
+            image: z.ZodOptional<z.ZodObject<{
+                src: z.ZodString;
+                alt: z.ZodDefault<z.ZodString>;
+                width: z.ZodOptional<z.ZodNumber>;
+                height: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strip>>;
+            excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+            seo: z.ZodPreprocess<z.ZodObject<{
+                title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+                focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+            }, z.core.$strip>, unknown>;
+            advanced: z.ZodPreprocess<z.ZodObject<{
+                hide_from_search: z.ZodDefault<z.ZodBoolean>;
+                robots: z.ZodDefault<z.ZodString>;
+            }, z.core.$strip>, unknown>;
+        } extends infer T_7 extends z.core.util.SomeObject ? { [K in keyof T_7 as K extends keyof E ? never : K]: T_7[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T_6 ? { [k in keyof T_6]: T_6[k]; } : never, {}> & {
+            title: string;
+            date: Date;
+            draft: boolean;
+            excerpt: string;
+            seo: {
+                title: string;
+                description: string;
+                focus_keyword: string | undefined;
+            };
+            advanced: {
+                hide_from_search: boolean;
+                robots: string;
+            };
+            slug?: string | undefined;
+            updated?: Date | undefined;
+            image?: {
+                src: string;
+                alt: string;
+                width?: number | undefined;
+                height?: number | undefined;
+            } | undefined;
+        })["image"] | undefined;
+        date_published: string;
+        date_modified: string;
+        canonical: string | undefined;
+        hide_from_search: boolean;
+        robots: string;
+        title: string;
+        description: string;
+        focus_keyword: string | undefined;
+    };
+}>, z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+    title: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+    updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+    draft: z.ZodDefault<z.ZodBoolean>;
+    image: z.ZodOptional<z.ZodObject<{
+        src: z.ZodString;
+        alt: z.ZodDefault<z.ZodString>;
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
+    excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    seo: z.ZodPreprocess<z.ZodObject<{
+        title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+    }, z.core.$strip>, unknown>;
+    advanced: z.ZodPreprocess<z.ZodObject<{
+        hide_from_search: z.ZodDefault<z.ZodBoolean>;
+        robots: z.ZodDefault<z.ZodString>;
+    }, z.core.$strip>, unknown>;
+} & { -readonly [P in keyof E]: E[P]; } : ({
+    title: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
+    updated: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+    draft: z.ZodDefault<z.ZodBoolean>;
+    image: z.ZodOptional<z.ZodObject<{
+        src: z.ZodString;
+        alt: z.ZodDefault<z.ZodString>;
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
+    excerpt: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    seo: z.ZodPreprocess<z.ZodObject<{
+        title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+        focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+    }, z.core.$strip>, unknown>;
+    advanced: z.ZodPreprocess<z.ZodObject<{
+        hide_from_search: z.ZodDefault<z.ZodBoolean>;
+        robots: z.ZodDefault<z.ZodString>;
+    }, z.core.$strip>, unknown>;
+} extends infer T_9 extends z.core.util.SomeObject ? { [K in keyof T_9 as K extends keyof E ? never : K]: T_9[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T_8 ? { [k in keyof T_8]: T_8[k]; } : never, {}>>>;
 /** What the SEO components read: a page's or post's merged `seo`. */
 export type PageSeo = z.output<ReturnType<typeof createPageSchema>>['seo'] | z.output<ReturnType<typeof createPostSchema>>['seo'];

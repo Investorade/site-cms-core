@@ -86,44 +86,51 @@ export function createPageSchema({ siteName, contentBlock }) {
 }
 /**
  * Blog posts (CMS → Blog). Each one is served at the site root, /<slug>/, like WordPress posts, so old links and
- * rankings carry over; the archive is /blog/. `slug` in the front matter overrides the file name.
+ * rankings carry over (or under the site's blog_path, cms/features.yml); the archive is /blog/. `slug` in the front
+ * matter overrides the file name. `extend` adds the site's own post fields (their CMS fields: cms/post-fields.yml).
  */
-export function createPostSchema({ siteName }) {
+const postFields = {
+    title: z.string(),
+    // The address: lower case words and dashes only (some WordPress addresses use a non-breaking hyphen, U+2011).
+    // No "/" or "..", so a post can't be built over another page or outside its folder.
+    slug: z
+        .string()
+        .regex(/^[a-z0-9]+(?:[-‑][a-z0-9]+)*$/, 'A post address may only use lower case letters, digits and dashes.')
+        .optional(),
+    // The CMS fills in today when a post is made; a file without a date counts as published at build time.
+    date: z.preprocess((value) => (value === undefined || value === null || value === '' ? new Date() : value), z.coerce.date()),
+    updated: z.coerce.date().optional(),
+    draft: z.boolean().default(false),
+    image: image.optional(),
+    excerpt: z.string().nullish().transform((v) => v ?? ''),
+    seo: seoGroup,
+    advanced: group({
+        hide_from_search: z.boolean().default(false),
+        robots: z.string().default('index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'),
+    }),
+};
+export function createPostSchema({ siteName, extend }) {
     const title = seoTitle(siteName);
     return z
-        .object({
-        title: z.string(),
-        // The address: lower case words and dashes only (some WordPress addresses use a non-breaking hyphen, U+2011).
-        // No "/" or "..", so a post can't be built over another page or outside its folder.
-        slug: z
-            .string()
-            .regex(/^[a-z0-9]+(?:[-‑][a-z0-9]+)*$/, 'A post address may only use lower case letters, digits and dashes.')
-            .optional(),
-        // The CMS fills in today when a post is made; a file without a date counts as published at build time.
-        date: z.preprocess((value) => (value === undefined || value === null || value === '' ? new Date() : value), z.coerce.date()),
-        updated: z.coerce.date().optional(),
-        draft: z.boolean().default(false),
-        image: image.optional(),
-        excerpt: z.string().nullish().transform((v) => v ?? ''),
-        seo: seoGroup,
-        advanced: group({
-            hide_from_search: z.boolean().default(false),
-            robots: z.string().default('index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'),
-        }),
-    })
-        .transform(({ seo, advanced, ...post }) => ({
-        ...post,
-        // The same shape pages pass to the SEO components.
-        seo: {
-            ...seo,
-            title: title(seo, post.title),
-            ...advanced,
-            og_type: 'article',
-            og_title: post.title,
-            og_image: post.image,
-            date_published: post.date.toISOString(),
-            date_modified: (post.updated ?? post.date).toISOString(),
-            canonical: undefined,
-        },
-    }));
+        .object(postFields)
+        // The site's own post fields (e.g. author, medical reviewer); a site may also tighten a shared one (e.g. image).
+        .extend((extend ?? {}))
+        .transform((data) => {
+        const { seo, advanced, ...post } = data;
+        return {
+            ...post,
+            // The same shape pages pass to the SEO components.
+            seo: {
+                ...seo,
+                title: title(seo, post.title),
+                ...advanced,
+                og_type: 'article',
+                og_title: post.title,
+                og_image: post.image,
+                date_published: post.date.toISOString(),
+                date_modified: (post.updated ?? post.date).toISOString(),
+                canonical: undefined,
+            },
+        };
+    });
 }

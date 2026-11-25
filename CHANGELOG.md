@@ -1,5 +1,10 @@
 # Release notes
 
+## 1.4.1 (2026-11-25)
+
+Extra post fields (`createPostSchema({ siteName, extend })`), listed in 1.4.0, now work: 1.4.0 shipped without them. A site's
+fields come after the shared ones, so a site can also make a shared field stricter (e.g. require the featured image).
+
 ## 1.4.0 (2026-11-25)
 
 For sites that aren't built like Henderson (the first is Injectco, a medical site on Cloudflare Pages). Nothing changes
