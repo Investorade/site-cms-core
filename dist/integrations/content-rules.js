@@ -14,6 +14,10 @@ import { readCmsConfig, readSiteProfile } from "../cms-config.js";
  * - `cms`: the CMS fields from the CMS config (cms/*.yml) (labels, hints, select options), so the AI knows what each
  *   section and field is for, and select fields (icons, looks) only take the CMS's choices.
  * - Where things live: content folders, the media folder, the redirects and menu files, reserved addresses.
+ * - `pageFiles`: for sites whose pages are one content file each (features.pages: false, cms/collections.yml), every
+ *   page file (JSON under src/content/) with its CMS fields and address (the file's preview_path). An AI may change
+ *   their text and images, never add or delete them: each has its own design in the site's code.
+ * - `addresses`: every page the build made, so menu links and redirects can be checked against real pages.
  * - `settings`: the Site settings files an AI may change (only for people given "Site settings too" by an admin), with
  *   their CMS fields and the parts that stay locked (form recipients, tracking, logos…). The AI connector's own switch
  *   (ai.json) is never in this list.
@@ -126,9 +130,8 @@ export default function contentRules({ schemas }) {
             'astro:build:done': ({ dir, logger }) => {
                 const root = process.cwd();
                 const outDir = fileURLToPath(dir);
-                // The AI connector works on pages made of sections and on posts: no rules for a site without them.
                 const profile = readSiteProfile(root);
-                if (!profile.features.ai_connector || !schemas.pages) {
+                if (!profile.features.ai_connector) {
                     logger.info('admin/content-rules.json: not written (the AI connector is off for this site).');
                     return;
                 }
@@ -148,21 +151,46 @@ export default function contentRules({ schemas }) {
                     .readdirSync(outDir, { withFileTypes: true })
                     .filter((e) => (e.isDirectory() ? !fs.existsSync(path.join(outDir, e.name, 'index.html')) : !e.name.endsWith('.html')))
                     .map((e) => e.name.replace(/\.[a-z0-9]+$/i, ''));
+                // Every page the build made (/, /about/, /blog/a-post/…), except the CMS itself.
+                const addresses = [];
+                const walk = (dirPath, address) => {
+                    if (fs.existsSync(path.join(dirPath, 'index.html')) && address !== '/admin/')
+                        addresses.push(address);
+                    for (const e of fs.readdirSync(dirPath, { withFileTypes: true }))
+                        if (e.isDirectory() && !['_astro', 'uploads', 'admin'].includes(e.name))
+                            walk(path.join(dirPath, e.name), `${address}${e.name}/`);
+                };
+                walk(outDir, '/');
+                // Pages that are one content file each (the site's own file collections, JSON under src/content/).
+                const pageFiles = profile.features.pages
+                    ? []
+                    : config.collections
+                        .filter((c) => c.name !== 'settings' && Array.isArray(c.files))
+                        .flatMap((c) => c.files
+                        .filter((f) => typeof f.file === 'string' && f.file.startsWith('src/content/') && f.file.endsWith('.json'))
+                        .map((f) => ({
+                        name: String(f.name),
+                        label: f.label ?? String(f.name),
+                        group: c.label ?? String(c.name),
+                        file: String(f.file),
+                        ...(typeof f.preview_path === 'string' ? { address: `/${f.preview_path.replace(/^\/+/, '')}` } : {}),
+                        cms: (f.fields ?? []).map(settingsField),
+                    })));
                 const rules = {
                     version: 1,
                     builtAt: new Date().toISOString(),
                     collections: {
-                        pages: {
-                            folder: 'src/content/pages',
-                            // The home page is index.md (/); every other page is /<file name>/.
-                            address: '/{file}/',
-                            home: 'index',
-                            // Pages built by their own route (blog.md is the /blog/ list): they can't be deleted through the connector.
-                            protected: ['blog'],
-                            body: false,
-                            schema: titleOnly(jsonSchema(schemas.pages)),
-                            cms: cmsFields('pages'),
-                        },
+                        ...(profile.features.pages && schemas.pages ? { pages: {
+                                folder: 'src/content/pages',
+                                // The home page is index.md (/); every other page is /<file name>/.
+                                address: '/{file}/',
+                                home: 'index',
+                                // Pages built by their own route (blog.md is the /blog/ list): they can't be deleted through the connector.
+                                protected: ['blog'],
+                                body: false,
+                                schema: titleOnly(jsonSchema(schemas.pages)),
+                                cms: cmsFields('pages'),
+                            } } : {}),
                         posts: {
                             folder: 'src/content/posts',
                             // /<slug>/: the front matter's slug when set, otherwise the file name.
@@ -175,6 +203,8 @@ export default function contentRules({ schemas }) {
                     media: { folder: config.media_folder ?? 'public/uploads', public: config.public_folder ?? '/uploads' },
                     redirects: 'src/data/redirects.json',
                     menus: ['src/data/navigation.json'],
+                    ...(pageFiles.length ? { pageFiles } : {}),
+                    addresses: addresses.sort(),
                     settings,
                     // Addresses that are taken by something other than a page or post (folders and files the build makes).
                     reserved: [...new Set(['admin', 'blog', 'uploads', 'api', 'kit', ...reserved])].sort(),

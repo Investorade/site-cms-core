@@ -79,7 +79,7 @@ features:
   pages: true              # pages made of sections (false: the site's own page collections in cms/collections.yml)
   blog: true               # the Blog collection
   popups: true             # Book Now / exit pop-ups: #book-now in link hints
-  ai_connector: true       # Site settings → AI connector (needs pages made of sections)
+  ai_connector: true       # Site settings → AI connector (sites with pages: false switch it on themselves)
 blog_path: /               # where posts live: / (/<post>/) or e.g. /blog/ (/blog/<post>/)
 wording:                   # optional: the site's own examples
   keyword_example: "med spa Dallas, Botox Dallas"
@@ -89,6 +89,11 @@ The examples use {name}, {city} and {region} from the site's `src/data/site.json
 
 More site files the core reads when present: `cms/collections.yml` (the site's own collections, after the Blog) and
 `cms/post-fields.yml` (extra post fields, before SEO; add the same fields with `createPostSchema({ siteName, extend })`).
+
+With `pages: false` and `ai_connector: true`, the AI connector works on the site's page files: every file of the site's
+own file collections that is JSON under `src/content/` (cms/collections.yml). An AI may change their text and images
+(checked against each file's CMS fields), not add or delete them. Give each file its page's address as `preview_path`
+(e.g. `preview_path: services/botox/`; the home page is `""`), so the AI and the CMS preview know where it is.
 
 ## Sites on Cloudflare Pages
 

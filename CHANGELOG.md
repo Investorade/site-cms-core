@@ -1,5 +1,17 @@
 # Release notes
 
+## 1.5.0 (2026-11-26)
+
+The AI connector for sites whose pages are content files (the first is Injectco). Henderson's pages and CMS don't change.
+
+- Sites with `pages: false` can switch the AI connector on (`ai_connector: true` in cms/features.yml; before, it was
+  always off for them). `admin/content-rules.json` then lists the site's page files (JSON under src/content/ in its own
+  file collections) with their CMS fields and address (each file's `preview_path`), so an AI can change their text and
+  images, but not add or delete pages. Blog posts work as on other sites.
+- `admin/content-rules.json` also lists every page the build made (`addresses`), so menu links and redirects an AI
+  writes are checked against real pages.
+- Needs the CMS login from 2026-11-26 or later, which reads page files (an older one refuses those sites' rules).
+
 ## 1.4.3 (2026-11-26)
 
 Posts under a blog path (e.g. /blog/) now preview at their real address. Henderson's CMS and pages don't change.

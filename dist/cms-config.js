@@ -160,8 +160,9 @@ export function readSiteProfile(root) {
             pages,
             blog: features.blog !== false,
             popups: typeof features.popups === 'boolean' ? features.popups : type === 'park',
-            // The AI connector works on pages made of sections: off when there are none.
-            ai_connector: pages && features.ai_connector !== false,
+            // The AI connector: on unless switched off. Sites whose pages are content files (pages: false) switch it on
+            // themselves (ai_connector: true): the AI can change those pages' text and images, not add or delete pages.
+            ai_connector: pages ? features.ai_connector !== false : features.ai_connector === true,
         },
         blog_path: blogPath,
         wording: wording,
