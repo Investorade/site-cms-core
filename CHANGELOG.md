@@ -1,5 +1,12 @@
 # Release notes
 
+## 1.4.3 (2026-11-26)
+
+Posts under a blog path (e.g. /blog/) now preview at their real address. Henderson's CMS and pages don't change.
+
+- Blog: for sites whose posts are under a blog path, the CMS config gives posts `preview_path: blog/{{slug}}/`, so the
+  editor's live preview (and the CMS's "view on site") opens /blog/<post>/ instead of /<post>/.
+
 ## 1.4.2 (2026-11-25)
 
 CMS fixes found on Injectco. Henderson's pages don't change; only one hint in its CMS does.

@@ -96,6 +96,14 @@ export function readCmsConfig(root) {
     // The shared 404 page settings: for sites with the core's pages, or a site whose own 404 page reads the file.
     if (!profile.features.pages && !fs.existsSync(path.join(root, 'src', 'data', 'not-found.json')))
         settings.files = settings.files.filter((f) => f.name !== 'not-found');
+    // Posts under a blog path: where each post is, for the CMS's Quick Preview and "view on site" (blog/{{slug}}/).
+    // Posts at the site root need none (the preview already uses /<slug>/).
+    if (profile.blog_path !== '/') {
+        const { fields, ...rest } = posts;
+        for (const key of Object.keys(posts))
+            delete posts[key];
+        Object.assign(posts, rest, { preview_path: `${profile.blog_path.slice(1)}{{slug}}/`, fields });
+    }
     const config = {
         ...base,
         backend: { ...base.backend, ...siteBackend },
