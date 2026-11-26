@@ -93,6 +93,9 @@ export function readCmsConfig(root) {
     const profile = readSiteProfile(root);
     if (!profile.features.ai_connector)
         settings.files = settings.files.filter((f) => f.name !== 'ai');
+    // The shared 404 page settings: for sites with the core's pages, or a site whose own 404 page reads the file.
+    if (!profile.features.pages && !fs.existsSync(path.join(root, 'src', 'data', 'not-found.json')))
+        settings.files = settings.files.filter((f) => f.name !== 'not-found');
     const config = {
         ...base,
         backend: { ...base.backend, ...siteBackend },
@@ -185,7 +188,7 @@ function wordingFor(root, profile) {
     const post = profile.blog_path === '/' ? words.post_address_example : profile.blog_path.replace(/\/$/, '') + words.post_address_example;
     words.post_address_example = post;
     words.post_location =
-        profile.blog_path === '/' ? `Each post is at the site root, e.g. ${post} (as on WordPress)` : `Each post is at ${profile.blog_path}<its address>/, e.g. ${post}`;
+        profile.blog_path === '/' ? `Each post is at the site root, e.g. ${post} (as on WordPress)` : `Each post is under ${profile.blog_path}, e.g. ${post}`;
     return words;
 }
 function fillWording(value, words) {

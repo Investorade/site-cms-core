@@ -1,5 +1,13 @@
 # Release notes
 
+## 1.4.2 (2026-11-25)
+
+CMS fixes found on Injectco. Henderson's pages don't change; only one hint in its CMS does.
+
+- Blog: the description for posts under a blog path read "/blog//" (the CMS hid "<its address>"). It now says "Each post is under /blog/".
+- Site settings: the 404 page entry only shows for sites with the core's pages, or a site that has src/data/not-found.json.
+- Site info: the search engine hint no longer names workers.dev ("The site's test address is always hidden").
+
 ## 1.4.1 (2026-11-25)
 
 Extra post fields (`createPostSchema({ siteName, extend })`), listed in 1.4.0, now work: 1.4.0 shipped without them. A site's

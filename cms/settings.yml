@@ -21,7 +21,7 @@ files:
         widget: boolean
         after_input: Discourage search engines from indexing this site
         default: false
-        hint: "When on, every page gets noindex, nofollow and the pages' own Robots settings are ignored (like the WordPress setting). The workers.dev test address is always hidden. Takes effect after the site rebuilds (about a minute)."
+        hint: "When on, every page gets noindex, nofollow and the pages' own Robots settings are ignored (like the WordPress setting). The site's test address is always hidden. Takes effect after the site rebuilds (about a minute)."
       - { name: locale, label: OG locale, hint: 'e.g. en_US' }
       - { name: language, label: Page language, hint: 'e.g. en-US' }
       - { name: favicon, label: Favicon, widget: image }
