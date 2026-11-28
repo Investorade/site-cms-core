@@ -1,3 +1,4 @@
+import { cleanStyleAttribute } from "./design-css.js";
 /**
  * Cleans HTML from page text before it goes on the page. CMS text is Markdown, and Markdown lets raw HTML through, so
  * a pasted or AI-written <script>, <iframe> or onclick="…" would otherwise run on the park's site, the same address
@@ -60,7 +61,32 @@ const ALLOWED = {
     u: [],
     ul: [],
 };
-const URL_ATTRIBUTES = new Set(['href', 'src']);
+/**
+ * Free-design pages' "Custom code" blocks (sanitizeDesignHtml): the formatting tags above plus layout tags, and on every
+ * tag class, id, style (cleaned like the page's CSS: lib/design-css.ts), title, role, lang, dir, aria-* and data-*.
+ * Still no scripts, frames, forms, event handlers or unsafe links.
+ */
+const DESIGN_ALLOWED = {
+    ...ALLOWED,
+    address: [],
+    article: [],
+    aside: [],
+    button: ['type'],
+    cite: [],
+    footer: [],
+    header: [],
+    hgroup: [],
+    label: [],
+    nav: [],
+    picture: [],
+    section: [],
+    source: ['srcset', 'media', 'type', 'sizes'],
+    time: ['datetime'],
+    video: ['src', 'poster', 'controls', 'autoplay', 'muted', 'loop', 'playsinline', 'preload', 'width', 'height'],
+    img: [...ALLOWED.img, 'srcset', 'sizes', 'decoding'],
+};
+const DESIGN_GLOBAL = ['class', 'id', 'style', 'title', 'role', 'lang', 'dir'];
+const URL_ATTRIBUTES = new Set(['href', 'src', 'poster']);
 /** http(s), mailto:, tel:, a path on the site (/…, ./…, ../…), a #anchor or ?query; nothing else (javascript:, data:…). */
 export function isSafeUrl(value) {
     // Browsers ignore control characters and whitespace inside a scheme ("java\tscript:"), so they're removed first.
@@ -77,18 +103,26 @@ const decodeEntities = (text) => text
     .replace(/&#(\d+);?/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&(colon|tab|newline|amp|lt|gt|quot|apos);/gi, (_, n) => ({ colon: ':', tab: '\t', newline: '\n', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" })[n.toLowerCase()] ?? '');
 const escapeAttribute = (value) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-function cleanAttributes(tag, raw) {
-    const allowed = ALLOWED[tag];
+function cleanAttributes(tag, raw, design = false) {
+    const allowed = (design ? DESIGN_ALLOWED : ALLOWED)[tag];
     let out = '';
     const pattern = /([^\s"'<>/=]+)(?:\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
     let m;
     while ((m = pattern.exec(raw))) {
         const name = m[1].toLowerCase();
-        if (!allowed.includes(name))
+        const global = design && (DESIGN_GLOBAL.includes(name) || /^(aria|data)-[a-z0-9-]+$/.test(name));
+        if (!allowed.includes(name) && !global)
             continue;
-        const value = m[3] ?? m[4] ?? m[5] ?? '';
+        let value = m[3] ?? m[4] ?? m[5] ?? '';
         if (URL_ATTRIBUTES.has(name) && !isSafeUrl(decodeEntities(value)))
             continue;
+        if (name === 'srcset' && !decodeEntities(value).split(',').every((part) => isSafeUrl(part.trim().split(/\s+/)[0] ?? '')))
+            continue;
+        if (name === 'style') {
+            value = cleanStyleAttribute(decodeEntities(value));
+            if (!value)
+                continue;
+        }
         if (name === 'target' && !/^_(blank|self)$/i.test(value))
             continue;
         out += m[2] === undefined ? ` ${name}` : ` ${name}="${escapeAttribute(decodeEntities(value))}"`;
@@ -98,7 +132,9 @@ function cleanAttributes(tag, raw) {
         out += ' rel="noopener"';
     return out;
 }
-export function sanitizeHtml(html) {
+/** A free-design page's custom HTML: the design allow-list (layout tags, class and style), still nothing that runs. */
+export const sanitizeDesignHtml = (html) => sanitizeHtml(html, true);
+export function sanitizeHtml(html, design = false) {
     let out = String(html ?? '');
     // Comments and processing instructions can hide markup.
     out = out.replace(/<!--[\s\S]*?(-->|$)/g, '').replace(/<![\s\S]*?(>|$)/g, '').replace(/<\?[\s\S]*?(>|$)/g, '');
@@ -115,9 +151,9 @@ export function sanitizeHtml(html) {
         result += escapeTagStarts(out.slice(last, m.index));
         last = m.index + m[0].length;
         const tag = m[2].toLowerCase();
-        if (!(tag in ALLOWED))
+        if (!(tag in (design ? DESIGN_ALLOWED : ALLOWED)))
             continue;
-        result += m[1] ? `</${tag}>` : `<${tag}${cleanAttributes(tag, m[3])}${m[4] ? ' /' : ''}>`;
+        result += m[1] ? `</${tag}>` : `<${tag}${cleanAttributes(tag, m[3], design)}${m[4] ? ' /' : ''}>`;
     }
     return result + escapeTagStarts(out.slice(last));
 }

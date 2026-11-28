@@ -1,0 +1,71 @@
+---
+/** One section of a free-design page: background, width, spacing, and its columns of blocks (DesignPage.astro). */
+import Block from './Block.astro';
+import { scopeCss } from '../../dist/lib/design-css.js';
+import { safeColor, type DesignSection } from '../../dist/design.js';
+
+interface Props {
+	section: DesignSection;
+	index: number;
+	resolveImage: (src: string) => string | Promise<string>;
+	formEndpoint: string;
+}
+
+const { section, index, resolveImage, formEndpoint } = Astro.props;
+const scope = `dz-s-${index}`;
+const bg = section.background ?? { color: '', overlay: 0 };
+const bgImage = bg.image?.src ? await resolveImage(bg.image.src) : '';
+const color = safeColor(bg.color);
+
+/** Dark text or light text: as set, or (automatic) light on a photo or a dark colour. */
+function luminance(c: string): number | null {
+	const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c)?.[1];
+	if (!hex) return null;
+	const full = hex.length === 3 ? [...hex].map((x) => x + x).join('') : hex;
+	const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const tone = section.tone !== 'auto' ? section.tone : bgImage && bg.overlay >= 25 ? 'light' : (luminance(color) ?? 1) < 0.45 ? 'light' : 'auto';
+
+const style = [color && `background:${color}`].filter(Boolean).join(';');
+/** A column with its own background (a panel) gets text that reads on it: light on a dark panel, dark otherwise. */
+const columnTone = (background: string) => (!safeColor(background) ? '' : (luminance(safeColor(background)) ?? 1) < 0.45 ? 'dz-tone-light' : 'dz-tone-dark');
+const columns = section.columns.length ? section.columns : [{ blocks: [], padding: 'none' as const, background: '' }];
+const css = scopeCss(section.custom_css, `.${scope}`);
+---
+
+<section
+	id={section.anchor || undefined}
+	class:list={['dz-section', scope, `dz-pad-${section.padding}`, `dz-tone-${tone}`, `dz-align-${section.align}`, bgImage && 'dz-has-image']}
+	style={style || undefined}
+>
+	{css && <style is:inline set:html={css} />}
+	{
+		bgImage && (
+			<div class="dz-section__bg" aria-hidden="true">
+				<img src={bgImage} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={index === 0 ? 'high' : undefined} />
+				{bg.overlay > 0 && <span style={`opacity:${bg.overlay / 100}`} />}
+			</div>
+		)
+	}
+	<div class:list={['dz-wrap', `dz-w-${section.width}`]}>
+		<div
+			class:list={['dz-cols', `dz-l-${section.layout.replace(/-/g, '_')}`, `dz-gap-${section.gap}`, `dz-v-${section.valign}`, section.reverse_on_mobile && 'dz-reverse']}
+		>
+			{
+				columns.map((column, ci) => (
+					<div
+						class:list={['dz-col', column.align && `dz-align-${column.align}`, column.background && 'dz-col--panel', columnTone(column.background), `dz-pad-in-${column.padding}`]}
+						style={safeColor(column.background) ? `background:${safeColor(column.background)}` : undefined}
+					>
+						{column.blocks
+							.filter((b) => !b.hidden)
+							.map((block, bi) => (
+								<Block block={block} id={`dz-b-${index}-${ci}-${bi}`} resolveImage={resolveImage} formEndpoint={formEndpoint} />
+							))}
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

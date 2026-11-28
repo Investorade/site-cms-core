@@ -43,6 +43,18 @@ export type BlogListBlock = z.output<typeof blogListBlock>;
 /** A group of optional fields: the CMS leaves the whole group out when all of its fields are empty. */
 export declare const group: <T extends z.ZodRawShape>(shape: T) => z.ZodPreprocess<z.ZodObject<{ -readonly [P in keyof T]: T[P]; }, z.core.$strip>, unknown>;
 /**
+ * Only a page's or post's title is required. Empty SEO fields fall back the way Rank Math's defaults do: the SEO title
+ * is "<title> - <site name>"; an empty meta description is left out (posts use their excerpt, see lib/blog).
+ */
+export declare const seoGroup: z.ZodPreprocess<z.ZodObject<{
+    title: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    description: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string, string | null | undefined>>;
+    focus_keyword: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | undefined, string | null | undefined>>;
+}, z.core.$strip>, unknown>;
+export declare const seoTitle: (siteName: string) => (seo: {
+    title: string;
+}, title: string) => string;
+/**
  * Pages: the CMS shows the page's SEO in three blocks, stored as three groups:
  * - `seo`: what search results show (title, description);
  * - `social`: social share title, type and image (Open Graph, also used in the schema.org data);
@@ -131,7 +143,7 @@ export declare function createPageSchema<B extends z.ZodType>({ siteName, conten
 export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteName, extend }: {
     siteName: string;
     extend?: E;
-}): z.ZodPipe<z.ZodObject<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+}): z.ZodPipe<z.ZodObject<(("seo" | "image" | "date" | "title" | "draft" | "advanced" | "slug" | "updated" | "excerpt") & keyof E extends never ? {
     title: z.ZodString;
     slug: z.ZodOptional<z.ZodString>;
     date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
@@ -175,7 +187,7 @@ export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteNam
         hide_from_search: z.ZodDefault<z.ZodBoolean>;
         robots: z.ZodDefault<z.ZodString>;
     }, z.core.$strip>, unknown>;
-} extends infer T_1 extends z.core.util.SomeObject ? { [K in keyof T_1 as K extends keyof E ? never : K]: T_1[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T ? { [k in keyof T]: T[k]; } : never, z.core.$strip>, z.ZodTransform<Awaited<Omit<z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+} extends infer T_1 extends z.core.util.SomeObject ? { [K in keyof T_1 as K extends keyof E ? never : K]: T_1[K]; } : never) & { [K_1 in keyof { -readonly [P in keyof E]: E[P]; }]: { -readonly [P in keyof E]: E[P]; }[K_1]; }) extends infer T ? { [k in keyof T]: T[k]; } : never, z.core.$strip>, z.ZodTransform<Awaited<Omit<z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "draft" | "advanced" | "slug" | "updated" | "excerpt") & keyof E extends never ? {
     title: z.ZodString;
     slug: z.ZodOptional<z.ZodString>;
     date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
@@ -244,7 +256,7 @@ export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteNam
 }, "seo" | "advanced"> & {
     seo: {
         og_type: string;
-        og_title: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+        og_title: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "draft" | "advanced" | "slug" | "updated" | "excerpt") & keyof E extends never ? {
             title: z.ZodString;
             slug: z.ZodOptional<z.ZodString>;
             date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
@@ -311,7 +323,7 @@ export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteNam
                 height?: number | undefined;
             } | undefined;
         })["title"];
-        og_image: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+        og_image: (z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "draft" | "advanced" | "slug" | "updated" | "excerpt") & keyof E extends never ? {
             title: z.ZodString;
             slug: z.ZodOptional<z.ZodString>;
             date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;
@@ -387,7 +399,7 @@ export declare function createPostSchema<E extends z.ZodRawShape = {}>({ siteNam
         description: string;
         focus_keyword: string | undefined;
     };
-}>, z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "excerpt" | "draft" | "advanced" | "slug" | "updated") & keyof E extends never ? {
+}>, z.core.$InferObjectOutput<(("seo" | "image" | "date" | "title" | "draft" | "advanced" | "slug" | "updated" | "excerpt") & keyof E extends never ? {
     title: z.ZodString;
     slug: z.ZodOptional<z.ZodString>;
     date: z.ZodPreprocess<z.ZodCoercedDate<unknown>, unknown>;

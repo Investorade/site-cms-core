@@ -1,0 +1,350 @@
+# The Designs collection: free-design pages (src/design.ts holds the same fields as the site's schema). Any layout from
+# sections → columns → blocks, with the site's fonts and colours; the site's header and footer can be switched off for a
+# stand-alone page (a PPC landing page). In the CMS of sites with designs: true in cms/features.yml.
+
+name: designs
+label: Designs
+label_singular: Design
+icon: dashboard_customize
+folder: src/content/designs
+extension: md
+format: frontmatter
+create: true
+slug: '{{slug}}'
+identifier_field: title
+summary: '{{title}}'
+description: "Free-design pages: any layout, built from sections, columns and blocks. Switch off the site's header and footer for a stand-alone page, e.g. a PPC landing page."
+table_columns:
+  - title
+  - { field: slug, label: Address }
+  - { field: header, label: Header }
+  - { field: draft, label: Draft }
+  - { field: commit_date, label: Updated }
+  - { field: commit_author, label: Updated by }
+sortable_fields:
+  fields: [title, commit_date]
+  default: { field: commit_date, direction: descending }
+view_filters:
+  - { label: Drafts, field: draft, pattern: true }
+  - { label: Stand-alone (no header), field: header, pattern: false }
+editor:
+  preview: true
+fields:
+  - { name: title, label: Page name, hint: "Internal name, shown in the CMS. Also the share title when “Share title” is empty." }
+  - name: draft
+    label: Draft
+    widget: boolean
+    default: false
+    required: false
+    hint: "A draft is at its address (so the preview works) but hidden from search engines and the sitemap."
+  - name: slug
+    label: Address
+    required: false
+    pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*$', 'Lower case words with dashes, optionally in folders, e.g. lp/botox-special']
+    hint: "The page's address without slashes at the ends, e.g. botox-special or lp/botox-special. Leave empty to use the file name."
+  - { name: header, label: Show the site header, widget: boolean, default: true, required: false, hint: "Off: a stand-alone page without the site's menu (e.g. a PPC landing page)." }
+  - { name: footer, label: Show the site footer, widget: boolean, default: true, required: false }
+  - name: page
+    label: Page style
+    widget: object
+    collapsed: true
+    required: false
+    fields:
+      - { name: background, label: Background colour, required: false, hint: "Any CSS colour or gradient, e.g. #faf7f2 or linear-gradient(#fff, #f4efe6). Empty: the site's." }
+      - { name: text_color, label: Text colour, required: false, hint: "Any CSS colour. Empty: the site's." }
+      - { name: custom_css, label: Custom CSS (whole page), widget: code, default_language: css, output_code_only: true, required: false, hint: "Applies to this page only. No @import, scripts or outside url()." }
+
+  - name: sections
+    label: Sections
+    label_singular: Section
+    widget: list
+    collapsed: true
+    required: false
+    summary: '{{fields.name}} · {{fields.layout}}'
+    hint: "Each section is one band of the page, top to bottom: a background, a width, spacing and 1–4 columns of blocks."
+    fields:
+      - { name: name, label: Section name, required: false, hint: "Only shown in the CMS." }
+      - { name: hidden, label: Hide this section, widget: boolean, default: false, required: false }
+      - { name: anchor, label: Anchor, required: false, hint: "Optional: lower case words with dashes. The section is then at #anchor (for menu or button links)." }
+      - name: layout
+        label: Columns
+        widget: select
+        default: '1'
+        options:
+          - { label: One column, value: '1' }
+          - { label: Two equal, value: '1-1' }
+          - { label: Two (wide left), value: '2-1' }
+          - { label: Two (wide right), value: '1-2' }
+          - { label: Three equal, value: '1-1-1' }
+          - { label: Four equal, value: '1-1-1-1' }
+          - { label: Narrow left, wide right (1:3), value: '1-3' }
+          - { label: Wide left, narrow right (3:1), value: '3-1' }
+      - name: width
+        label: Content width
+        widget: select
+        default: normal
+        options: [{ label: Narrow (text), value: narrow }, { label: Normal, value: normal }, { label: Wide, value: wide }, { label: Full screen, value: full }]
+      - { name: padding, label: Space above and below, widget: select, default: large, options: [none, small, medium, large, xlarge] }
+      - { name: gap, label: Space between columns, widget: select, default: medium, options: [none, small, medium, large, xlarge] }
+      - { name: valign, label: Vertical alignment of columns, widget: select, default: top, options: [top, center, bottom, stretch] }
+      - { name: align, label: Text alignment, widget: select, default: left, options: [left, center, right] }
+      - { name: tone, label: Text colour, widget: select, default: auto, options: [{ label: Automatic, value: auto }, { label: Dark text, value: dark }, { label: Light text (for dark backgrounds), value: light }] }
+      - name: background
+        label: Background
+        widget: object
+        collapsed: true
+        required: false
+        fields:
+          - { name: color, label: Colour or gradient, required: false, hint: "Any CSS colour or gradient, e.g. #1b1816 or linear-gradient(135deg, #2e2925, #4a4139)." }
+          - { name: image, label: Image, widget: object, required: false, collapsed: auto, fields: !core image }
+          - { name: overlay, label: Dark overlay on the image (%), widget: number, value_type: int, min: 0, max: 95, default: 0, required: false }
+      - { name: reverse_on_mobile, label: Reverse the column order on phones, widget: boolean, default: false, required: false }
+      - name: columns
+        label: Columns
+        label_singular: Column
+        widget: list
+        collapsed: true
+        required: false
+        hint: "As many columns as the layout above has (extra columns wrap to a new row)."
+        fields:
+          - { name: align, label: Text alignment, widget: select, required: false, options: [left, center, right], hint: "Empty: the section's." }
+          - { name: background, label: Background colour, required: false, hint: "Optional: gives the column its own panel." }
+          - { name: padding, label: Inner space, widget: select, default: none, options: [none, small, medium, large, xlarge] }
+          - name: blocks
+            label: Blocks
+            label_singular: Block
+            widget: list
+            typeKey: _type
+            collapsed: true
+            required: false
+            types:
+              - name: heading
+                label: Heading
+                summary: '{{fields.text}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: eyebrow, label: Small text above, required: false }
+                  - { name: text, label: Heading }
+                  - { name: level, label: Level, widget: select, default: h2, options: [h1, h2, h3, h4], hint: "One h1 per page: the main heading." }
+                  - { name: size, label: Size, widget: select, default: large, options: [small, medium, large, xlarge, huge] }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+                  - { name: color, label: Colour, required: false, hint: "Any CSS colour. Empty: the section's." }
+              - name: text
+                label: Text
+                summary: '{{fields.text | truncate(60)}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: text, label: Text, widget: markdown }
+                  - { name: size, label: Size, widget: select, default: medium, options: [small, medium, large] }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+              - name: image
+                label: Image
+                summary: '{{fields.image.alt}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: image, label: Image, widget: object, fields: !core image }
+                  - { name: ratio, label: Shape, widget: select, default: auto, options: [auto, '1:1', '4:3', '3:2', '16:9', '21:9', '3:4', '2:3'] }
+                  - { name: fit, label: Fit, widget: select, default: cover, options: [cover, contain] }
+                  - { name: rounded, label: Rounded corners, widget: boolean, default: false, required: false }
+                  - { name: shadow, label: Shadow, widget: boolean, default: false, required: false }
+                  - { name: link, label: Link, required: false }
+                  - { name: caption, label: Caption, required: false }
+                  - { name: max_width, label: Max width (px), widget: number, value_type: int, required: false }
+              - name: gallery
+                label: Gallery
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: images, label: Images, label_singular: Image, widget: list, fields: !core image }
+                  - { name: columns, label: Columns, widget: number, value_type: int, min: 1, max: 6, default: 3 }
+                  - { name: ratio, label: Shape, widget: select, default: '1:1', options: [auto, '1:1', '4:3', '3:2', '16:9', '21:9', '3:4', '2:3'] }
+                  - { name: rounded, label: Rounded corners, widget: boolean, default: false, required: false }
+              - name: buttons
+                label: Buttons
+                summary: '{{fields.items.0.label}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - name: items
+                    label: Buttons
+                    label_singular: Button
+                    widget: list
+                    fields:
+                      - { name: label, label: Label }
+                      - { name: link, label: Link, hint: 'A page URL (e.g. /pricing/), #anchor, tel:, mailto: or a full URL[[or_popup_link]].' }
+                      - { name: style, label: Style, widget: select, default: primary, options: [primary, secondary, outline, text] }
+                      - { name: new_tab, label: Open in a new tab, widget: boolean, default: false, required: false }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+                  - { name: size, label: Size, widget: select, default: medium, options: [small, medium, large] }
+              - name: card
+                label: Card
+                summary: '{{fields.heading}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: image, label: Image, widget: object, required: false, collapsed: auto, fields: !core image }
+                  - { name: eyebrow, label: Small text above, required: false }
+                  - { name: heading, label: Heading, required: false }
+                  - { name: text, label: Text, widget: markdown, required: false }
+                  - { name: button, label: Button, widget: object, required: false, collapsed: auto, fields: !core button }
+                  - { name: style, label: Style, widget: select, default: border, options: [plain, border, shadow, filled] }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+              - name: list
+                label: List
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - name: items
+                    label: Items
+                    label_singular: Item
+                    widget: list
+                    summary: '{{fields.text | truncate(60)}}'
+                    fields:
+                      - { name: text, label: Text }
+                      - { name: icon, label: Icon, required: false, hint: "With marker “icon”: an emoji or a character, e.g. ✓ ★ ⚡" }
+                  - { name: marker, label: Marker, widget: select, default: check, options: [check, dot, number, none, icon] }
+                  - { name: columns, label: Columns, widget: number, value_type: int, min: 1, max: 3, default: 1 }
+              - name: features
+                label: Features (icon, heading, text)
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - name: items
+                    label: Items
+                    label_singular: Item
+                    widget: list
+                    summary: '{{fields.heading}}'
+                    fields:
+                      - { name: icon, label: Icon, required: false, hint: "An emoji or a character. Or use an image below." }
+                      - { name: image, label: Image, widget: object, required: false, collapsed: auto, fields: !core image }
+                      - { name: heading, label: Heading }
+                      - { name: text, label: Text, widget: text, required: false }
+                      - { name: link, label: Link, required: false }
+                  - { name: columns, label: Columns, widget: number, value_type: int, min: 1, max: 4, default: 3 }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+                  - { name: style, label: Style, widget: select, default: plain, options: [plain, card] }
+              - name: stats
+                label: Numbers
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - name: items
+                    label: Numbers
+                    label_singular: Number
+                    widget: list
+                    summary: '{{fields.value}} {{fields.label}}'
+                    fields:
+                      - { name: value, label: Number, hint: 'e.g. 4.9★, 10,000+, $12' }
+                      - { name: label, label: Label, required: false }
+                  - { name: columns, label: Columns, widget: number, value_type: int, min: 1, max: 6, default: 4 }
+                  - { name: align, label: Alignment, widget: select, required: false, options: [left, center, right] }
+              - name: quote
+                label: Quote / testimonial
+                summary: '{{fields.author}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: text, label: Quote, widget: text }
+                  - { name: author, label: Name, required: false }
+                  - { name: role, label: Role or place, required: false }
+                  - { name: image, label: Photo, widget: object, required: false, collapsed: auto, fields: !core image }
+                  - { name: style, label: Style, widget: select, default: plain, options: [plain, card, large] }
+              - name: accordion
+                label: Questions (accordion)
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - name: items
+                    label: Questions
+                    label_singular: Question
+                    widget: list
+                    summary: '{{fields.question}}'
+                    fields:
+                      - { name: question, label: Question }
+                      - { name: answer, label: Answer, widget: markdown }
+                  - { name: open_first, label: First one open, widget: boolean, default: false, required: false }
+              - name: video
+                label: Video (YouTube or Vimeo)
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: url, label: Video address, hint: 'A YouTube or Vimeo link, e.g. https://www.youtube.com/watch?v=…' }
+                  - { name: ratio, label: Shape, widget: select, default: '16:9', options: ['16:9', '4:3', '1:1', '9:16'] }
+                  - { name: caption, label: Caption, required: false }
+              - name: map
+                label: Map
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: query, label: Address or place, hint: 'e.g. 123 Main St, Dallas TX' }
+                  - { name: height, label: Height (px), widget: number, value_type: int, default: 400 }
+                  - { name: zoom, label: Zoom, widget: number, value_type: int, min: 1, max: 20, default: 14 }
+              - name: form
+                label: Form
+                summary: '{{fields.heading}}'
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: form_id, label: Form ID, hint: "One of the site's forms (Site settings → Forms): who gets the leads is set there." }
+                  - { name: heading, label: Heading, required: false }
+                  - { name: text, label: Text, widget: text, required: false }
+                  - name: fields
+                    label: Fields
+                    label_singular: Field
+                    widget: list
+                    summary: '{{fields.label}} ({{fields.type}})'
+                    fields:
+                      - { name: name, label: Field name, hint: 'Lower case, e.g. name, email, phone, message' }
+                      - { name: label, label: Label }
+                      - { name: type, label: Type, widget: select, default: text, options: [text, email, tel, textarea, select, checkbox, date, number] }
+                      - { name: required, label: Required, widget: boolean, default: false, required: false }
+                      - { name: placeholder, label: Placeholder, required: false }
+                      - { name: options, label: Choices (for select), widget: list, required: false }
+                      - { name: width, label: Width, widget: select, default: full, options: [full, half] }
+                  - { name: submit_label, label: Button label, default: Send }
+                  - { name: success_message, label: Thank-you message, default: Thank you! We’ll be in touch soon. }
+                  - { name: redirect, label: After sending, go to, required: false, hint: "Optional: a thank-you page address." }
+                  - { name: button_style, label: Button style, widget: select, default: primary, options: [primary, secondary, outline, text] }
+              - name: divider
+                label: Divider
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: style, label: Style, widget: select, default: line, options: [line, dots, short] }
+              - name: spacer
+                label: Space
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: size, label: Size, widget: select, default: medium, options: [none, small, medium, large, xlarge] }
+              - name: html
+                label: Custom code (HTML and CSS)
+                fields:
+                  - { name: hidden, label: Hide, widget: boolean, default: false, required: false }
+                  - { name: custom_html, label: HTML, widget: code, default_language: html, output_code_only: true, required: false, hint: "Layout and formatting tags with class and style. Scripts, frames and forms are removed." }
+                  - { name: custom_css, label: CSS, widget: code, default_language: css, output_code_only: true, required: false, hint: "Applies to this block only. No @import, scripts or outside url()." }
+      - { name: custom_css, label: Custom CSS (this section), widget: code, default_language: css, output_code_only: true, required: false }
+
+  # ── SEO (as on pages) ──
+  - name: seo
+    label: SEO
+    widget: object
+    collapsed: true
+    required: false
+    fields:
+      - { name: title, label: SEO title, required: false, hint: "At most 60 characters (about 580 px). Leave empty to use the page name followed by the site name." }
+      - { name: description, label: Meta description, widget: text, required: false, hint: "At most 160 characters (about 920 px)." }
+      - { name: focus_keyword, label: Focus keyword, required: false }
+  - name: social
+    label: Social & Schema
+    widget: object
+    collapsed: true
+    required: false
+    fields:
+      - { name: og_title, label: Share title, required: false }
+      - { name: og_type, label: Share type, required: false, default: website }
+      - { name: og_image, label: Share image, widget: object, required: false, collapsed: auto, fields: !core image }
+  - name: advanced
+    label: Advanced
+    widget: object
+    collapsed: true
+    required: false
+    fields:
+      - name: hide_from_search
+        label: Search engine visibility
+        widget: boolean
+        after_input: Hide this page from search engines
+        required: false
+        default: false
+        hint: "Recommended for PPC landing pages, so they don't compete with the site's main pages in Google."
+      - { name: canonical, label: Canonical URL, type: url, required: false }
+      - { name: robots, label: Robots, required: false, default: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }
+      - { name: date_published, label: Date published, required: false }
+      - { name: date_modified, label: Date modified, required: false }

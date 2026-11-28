@@ -44,13 +44,13 @@ export const group = (shape) => z.preprocess((value) => value ?? {}, z.object(sh
  * Only a page's or post's title is required. Empty SEO fields fall back the way Rank Math's defaults do: the SEO title
  * is "<title> - <site name>"; an empty meta description is left out (posts use their excerpt, see lib/blog).
  */
-const seoGroup = group({
+export const seoGroup = group({
     title: z.string().nullish().transform((v) => v?.trim() ?? ''),
     description: z.string().nullish().transform((v) => v?.trim() ?? ''),
     // The main search phrase the page should rank for. Not output on the page; the SEO report checks it.
     focus_keyword: z.string().nullish().transform((v) => v ?? undefined),
 });
-const seoTitle = (siteName) => (seo, title) => seo.title || [title.trim(), siteName].filter(Boolean).join(' - ');
+export const seoTitle = (siteName) => (seo, title) => seo.title || [title.trim(), siteName].filter(Boolean).join(' - ');
 /**
  * Pages: the CMS shows the page's SEO in three blocks, stored as three groups:
  * - `seo`: what search results show (title, description);

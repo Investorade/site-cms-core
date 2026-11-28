@@ -102,9 +102,9 @@ export default function contentRules({ schemas }) {
                 const seenPosts = new Map();
                 const problems = [];
                 const reserved = new Set(['admin', 'api', 'kit', 'uploads', '_astro']);
-                for (const [folder, label, useSlug] of [['src/content/pages', 'page', false], ['src/content/posts', 'post', true]]) {
+                for (const [folder, label, useSlug] of [['src/content/pages', 'page', false], ['src/content/posts', 'post', true], ['src/content/designs', 'design', true]]) {
                     const dir = path.join(root, folder);
-                    if (!fs.existsSync(dir) || (label === 'page' && !profile.features.pages))
+                    if (!fs.existsSync(dir) || (label === 'page' && !profile.features.pages) || (label === 'design' && !profile.features.designs))
                         continue;
                     const seen_ = label === 'post' && !atRoot ? seenPosts : seen;
                     for (const name of fs.readdirSync(dir).filter((n) => n.endsWith('.md')).sort()) {
@@ -116,7 +116,7 @@ export default function contentRules({ schemas }) {
                         const address = String((useSlug && typeof data.slug === 'string' && data.slug.trim()) || base).toLowerCase();
                         const where = `${folder}/${name}`;
                         const shown = label === 'post' ? `${profile.blog_path}${address}/` : `/${address}/`;
-                        if ((label === 'page' || atRoot) && reserved.has(address))
+                        if ((label !== 'post' || atRoot) && (reserved.has(address) || reserved.has(address.split('/')[0])))
                             problems.push(`The ${label} ${where} has the address ${shown}, which the site uses itself.`);
                         if (seen_.has(address))
                             problems.push(`The ${label} ${where} has the address ${shown}, which ${seen_.get(address)} already uses.`);
@@ -190,6 +190,14 @@ export default function contentRules({ schemas }) {
                                 body: false,
                                 schema: titleOnly(jsonSchema(schemas.pages)),
                                 cms: cmsFields('pages'),
+                            } } : {}),
+                        ...(profile.features.designs && schemas.designs ? { designs: {
+                                folder: 'src/content/designs',
+                                // /<slug>/: the front matter's slug (an address, folders allowed: lp/botox) when set, otherwise the file name.
+                                address: '/{slug|file}/',
+                                body: false,
+                                schema: titleOnly(jsonSchema(schemas.designs)),
+                                cms: cmsFields('designs'),
                             } } : {}),
                         posts: {
                             folder: 'src/content/posts',

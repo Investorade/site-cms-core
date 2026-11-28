@@ -241,6 +241,10 @@ function writeSeoReport(root, outDir, pages, siteUrl, logger, images) {
     const pagesDir = path.join(root, 'src/content/pages');
     const postsDir = path.join(root, 'src/content/posts');
     const postFiles = fs.existsSync(postsDir) ? fs.readdirSync(postsDir).filter((f) => f.endsWith('.md')) : [];
+    // Designs (free-design pages): at their own address (front-matter slug, folders allowed) or /<file name>/.
+    const designsDir = path.join(root, 'src/content/designs');
+    const designFiles = fs.existsSync(designsDir) ? fs.readdirSync(designsDir).filter((f) => f.endsWith('.md')) : [];
+    const designFor = (slug) => designFiles.find((f) => (scalar(fs.readFileSync(path.join(designsDir, f), 'utf8'), /^slug:[ \t]*(.+)$/m) || f.replace(/\.md$/, '')) === slug);
     const scalar = (text, pattern) => {
         const value = text.match(pattern)?.[1]?.trim() ?? '';
         return value.replace(/^(["'])([\s\S]*)\1$/, '$2').replace(/\\"/g, '"').trim();
@@ -252,6 +256,11 @@ function writeSeoReport(root, outDir, pages, siteUrl, logger, images) {
         if (fs.existsSync(path.join(pagesDir, `${slug}.md`))) {
             collection = 'pages';
             file = path.join(pagesDir, `${slug}.md`);
+        }
+        else if (designFor(slug)) {
+            const name = designFor(slug);
+            collection = 'designs';
+            file = path.join(designsDir, name);
         }
         else {
             const name = postFiles.find((f) => {

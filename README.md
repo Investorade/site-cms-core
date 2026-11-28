@@ -80,6 +80,7 @@ features:
   blog: true               # the Blog collection
   popups: true             # Book Now / exit pop-ups: #book-now in link hints
   ai_connector: true       # Site settings → AI connector (sites with pages: false switch it on themselves)
+  designs: true            # Designs: free-design pages (needs the collection and route below)
 blog_path: /               # where posts live: / (/<post>/) or e.g. /blog/ (/blog/<post>/)
 wording:                   # optional: the site's own examples
   keyword_example: "med spa Dallas, Botox Dallas"
@@ -94,6 +95,34 @@ With `pages: false` and `ai_connector: true`, the AI connector works on the site
 own file collections that is JSON under `src/content/` (cms/collections.yml). An AI may change their text and images
 (checked against each file's CMS fields), not add or delete them. Give each file its page's address as `preview_path`
 (e.g. `preview_path: services/botox/`; the home page is `""`), so the AI and the CMS preview know where it is.
+
+## Designs (free-design pages)
+
+With `designs: true`, the CMS gets **Designs**: pages built from sections (background colour, gradient or photo, width,
+spacing, 1–4 columns), each column holding blocks (heading, text, image, gallery, buttons, card, list, features,
+numbers, quote, questions, video, map, form, divider, space, custom HTML/CSS). Any layout can be made without a
+developer, in the site's own fonts and colours, and a page can leave out the site's header and footer (a stand-alone
+PPC landing page). The AI connector and the CMS's AI builder can create and change them. Custom HTML and CSS are
+cleaned (no scripts, frames, forms, event handlers, @import or outside url()) and only style their own part.
+
+The site needs, once:
+
+```ts
+// src/lib/content-schemas.ts
+import { createDesignSchema } from '@investorade/site-cms-core/design';
+export const designSchema = createDesignSchema({ siteName });
+// src/content.config.ts: a `designs` collection (glob '**/*.md' in ./src/content/designs) with designSchema
+// astro.config.mjs: siteCmsCore({ schemas: { pages, posts, designs: designSchema } })
+```
+
+- `src/pages/[...design].astro`: `getStaticPaths` from `getCollection('designs')` with
+  `designPath(design.id, design.data)`, rendering `components/design/DesignPage.astro` inside the site's layout with
+  `header={design.data.header} footer={design.data.footer}` (the layout leaves them out when false). Sites whose images
+  are Astro assets pass `resolveImage`.
+- The site's colours and fonts as `--design-*` variables on `.dz-page` (accent, accent-text, heading, text, muted,
+  surface, line, font-heading, font-body, radius, wrap); a fixed header that covers the page sets
+  `--design-header-offset` when it's shown. See Henderson, Injectco or site-starter for the three kinds.
+- Form blocks send to the shared forms service with one of the site's form IDs (its recipients stay in Site settings).
 
 ## Sites on Cloudflare Pages
 

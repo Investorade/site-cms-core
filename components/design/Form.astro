@@ -1,0 +1,127 @@
+---
+/**
+ * A Form block on a free-design page. It sends to the shared forms service (forms.dadscampgrounds.com), which keeps the
+ * lead (the CMS's Leads page) and emails it to the recipients of the site form named by `form_id` (Site settings →
+ * Forms), so who gets the leads is never written into the page. The hidden "company" field is the spam trap. Forms
+ * with the Turnstile spam check switched on need the site's own form; pick a form without it here.
+ */
+import type { DesignBlock } from '../../dist/design.js';
+import { isSafeUrl } from '../../dist/lib/sanitize-html.js';
+
+type FormBlock = Extract<DesignBlock, { _type: 'form' }>;
+interface Props {
+	block: FormBlock;
+	id: string;
+	endpoint: string;
+}
+
+const { block, id, endpoint } = Astro.props;
+const fields = block.fields.length
+	? block.fields
+	: [
+			{ name: 'name', label: 'Name', type: 'text' as const, required: true, placeholder: '', options: [], width: 'half' as const },
+			{ name: 'phone', label: 'Phone', type: 'tel' as const, required: true, placeholder: '', options: [], width: 'half' as const },
+			{ name: 'email', label: 'Email', type: 'email' as const, required: false, placeholder: '', options: [], width: 'full' as const },
+			{ name: 'message', label: 'Message', type: 'textarea' as const, required: false, placeholder: '', options: [], width: 'full' as const },
+		];
+const auto: Record<string, string> = { name: 'name', email: 'email', phone: 'tel', first_name: 'given-name', last_name: 'family-name' };
+---
+
+<div class="dz-block dz-form">
+	{block.heading && <h3 class="dz-h dz-h-medium">{block.heading}</h3>}
+	{block.text && <p>{block.text}</p>}
+	<form
+		data-dz-form
+		data-endpoint={endpoint}
+		data-form-id={block.form_id}
+		data-form-name={block.heading || block.form_id}
+		data-success={block.success_message}
+		data-redirect={block.redirect && isSafeUrl(block.redirect) ? block.redirect : undefined}
+		novalidate
+	>
+		<div class="dz-form__grid">
+			{
+				fields.map((f) => {
+					const fid = `${id}-${f.name}`;
+					return (
+						<label class:list={['dz-field', f.width === 'half' && 'dz-field--half', f.type === 'checkbox' && 'dz-field--check']} for={fid}>
+							{f.type !== 'checkbox' && (
+								<span>
+									{f.label}
+									{f.required && ' *'}
+								</span>
+							)}
+							{f.type === 'textarea' ? (
+								<textarea id={fid} name={f.name} rows="4" required={f.required} placeholder={f.placeholder || undefined} maxlength="3000" />
+							) : f.type === 'select' ? (
+								<select id={fid} name={f.name} required={f.required}>
+									<option value="">{f.placeholder || 'Choose…'}</option>
+									{f.options.map((o) => (
+										<option>{o}</option>
+									))}
+								</select>
+							) : f.type === 'checkbox' ? (
+								<>
+									<input id={fid} type="checkbox" name={f.name} value="Yes" required={f.required} />
+									<span>
+										{f.label}
+										{f.required && ' *'}
+									</span>
+								</>
+							) : (
+								<input id={fid} type={f.type} name={f.name} required={f.required} placeholder={f.placeholder || undefined} autocomplete={auto[f.name]} maxlength="300" />
+							)}
+						</label>
+					);
+				})
+			}
+			<label class="dz-trap" aria-hidden="true">Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+		</div>
+		<button type="submit" class={`dz-btn dz-btn-${block.button_style} dz-btn-medium`}>{block.submit_label}</button>
+		<p class="dz-form__status" role="status" aria-live="polite"></p>
+	</form>
+</div>
+
+<script>
+	// Every Form block on the page: checks required fields, sends as JSON, then shows the thank-you text or goes to the
+	// thank-you page.
+	for (const form of document.querySelectorAll<HTMLFormElement>('form[data-dz-form]')) {
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const status = form.querySelector<HTMLElement>('.dz-form__status')!;
+			const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+			if (!form.checkValidity()) {
+				form.reportValidity();
+				return;
+			}
+			const data = new FormData(form);
+			const fields: Record<string, string> = {};
+			let website = '';
+			for (const [key, value] of data.entries()) {
+				if (key === 'company') website = String(value);
+				else fields[key] = String(value);
+			}
+			button.disabled = true;
+			status.textContent = 'Sending…';
+			try {
+				const response = await fetch(form.dataset.endpoint!, {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ form_id: form.dataset.formId, form_name: form.dataset.formName, fields, page_url: location.href, website }),
+				});
+				if (!response.ok) throw new Error(String(response.status));
+				if (form.dataset.redirect) {
+					location.href = form.dataset.redirect;
+					return;
+				}
+				form.reset();
+				status.textContent = form.dataset.success ?? 'Thank you!';
+				form.classList.add('dz-form--sent');
+			} catch {
+				status.textContent = 'Sorry, it didn’t send. Please try again in a minute, or call us.';
+			} finally {
+				button.disabled = false;
+			}
+		});
+	}
+</script>

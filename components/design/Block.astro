@@ -1,0 +1,212 @@
+---
+/** One block of a free-design page (heading, text, image…): DesignPage.astro → Section.astro → here. */
+import Form from './Form.astro';
+import { md } from '../../dist/lib/markdown.js';
+import { isSafeUrl, sanitizeDesignHtml } from '../../dist/lib/sanitize-html.js';
+import { scopeCss } from '../../dist/lib/design-css.js';
+import { safeColor, videoEmbed, type DesignBlock } from '../../dist/design.js';
+
+interface Props {
+	block: DesignBlock;
+	id: string;
+	resolveImage: (src: string) => string | Promise<string>;
+	formEndpoint: string;
+}
+
+const { block, id, resolveImage, formEndpoint } = Astro.props;
+const href = (link?: string) => (link && isSafeUrl(link) ? link : undefined);
+const ratio = (r: string) => (r === 'auto' ? undefined : `aspect-ratio:${r.replace(':', '/')}`);
+const img = async (image?: { src: string; alt?: string; width?: number; height?: number }) =>
+	image?.src ? { src: await resolveImage(image.src), alt: image.alt ?? '', width: image.width, height: image.height } : null;
+
+// Images resolved before the markup (the site may turn "asset:…" into a built address).
+const one = block._type === 'image' ? await img(block.image) : block._type === 'card' || block._type === 'quote' ? await img(block.image) : null;
+const many =
+	block._type === 'gallery'
+		? await Promise.all(block.images.map(img))
+		: block._type === 'features'
+			? await Promise.all(block.items.map((i) => img(i.image)))
+			: [];
+const align = 'align' in block && block.align ? `dz-align-${block.align}` : '';
+---
+
+{
+	block._type === 'heading' && (
+		<div class:list={['dz-block dz-heading', align]} style={safeColor(block.color) ? `color:${safeColor(block.color)}` : undefined}>
+			{block.eyebrow && <p class="dz-eyebrow">{block.eyebrow}</p>}
+			{block.level === 'h1' && <h1 class={`dz-h dz-h-${block.size}`}>{block.text}</h1>}
+			{block.level === 'h2' && <h2 class={`dz-h dz-h-${block.size}`}>{block.text}</h2>}
+			{block.level === 'h3' && <h3 class={`dz-h dz-h-${block.size}`}>{block.text}</h3>}
+			{block.level === 'h4' && <h4 class={`dz-h dz-h-${block.size}`}>{block.text}</h4>}
+		</div>
+	)
+}
+{block._type === 'text' && <div class:list={['dz-block dz-text', `dz-text-${block.size}`, align]} set:html={md(block.text)} />}
+{
+	block._type === 'image' && one && (
+		<figure class="dz-block dz-image" style={block.max_width ? `max-width:${block.max_width}px` : undefined}>
+			{href(block.link) ? (
+				<a href={href(block.link)}>
+					<img src={one.src} alt={one.alt} width={one.width} height={one.height} loading="lazy" decoding="async" class:list={[block.rounded && 'dz-rounded', block.shadow && 'dz-shadow', `dz-fit-${block.fit}`]} style={ratio(block.ratio)} />
+				</a>
+			) : (
+				<img src={one.src} alt={one.alt} width={one.width} height={one.height} loading="lazy" decoding="async" class:list={[block.rounded && 'dz-rounded', block.shadow && 'dz-shadow', `dz-fit-${block.fit}`]} style={ratio(block.ratio)} />
+			)}
+			{block.caption && <figcaption>{block.caption}</figcaption>}
+		</figure>
+	)
+}
+{
+	block._type === 'gallery' && (
+		<div class="dz-block dz-gallery" style={`--dz-n:${block.columns}`}>
+			{many.map((m) => m && <img src={m.src} alt={m.alt} width={m.width} height={m.height} loading="lazy" decoding="async" class:list={[block.rounded && 'dz-rounded']} style={ratio(block.ratio)} />)}
+		</div>
+	)
+}
+{
+	block._type === 'buttons' && (
+		<div class:list={['dz-block dz-buttons', align]}>
+			{block.items.map((b) => (
+				<a class:list={['dz-btn', `dz-btn-${b.style}`, `dz-btn-${block.size}`]} href={href(b.link) ?? '#'} target={b.new_tab ? '_blank' : undefined} rel={b.new_tab ? 'noopener' : undefined}>
+					{b.label}
+				</a>
+			))}
+		</div>
+	)
+}
+{
+	block._type === 'card' && (
+		<div class:list={['dz-block dz-card', `dz-card-${block.style}`, align]}>
+			{one && <img class="dz-card__img" src={one.src} alt={one.alt} width={one.width} height={one.height} loading="lazy" decoding="async" />}
+			<div class="dz-card__body">
+				{block.eyebrow && <p class="dz-eyebrow">{block.eyebrow}</p>}
+				{block.heading && <h3 class="dz-h dz-h-small">{block.heading}</h3>}
+				{block.text && <div class="dz-text" set:html={md(block.text)} />}
+				{block.button && (
+					<a class="dz-btn dz-btn-primary dz-btn-small" href={href(block.button.link) ?? '#'}>
+						{block.button.label}
+					</a>
+				)}
+			</div>
+		</div>
+	)
+}
+{
+	block._type === 'list' &&
+		(block.marker === 'number' ? (
+			<ol class="dz-block dz-list dz-list-number" style={`--dz-n:${block.columns}`}>
+				{block.items.map((i) => (
+					<li>{i.text}</li>
+				))}
+			</ol>
+		) : (
+			<ul class={`dz-block dz-list dz-list-${block.marker}`} style={`--dz-n:${block.columns}`}>
+				{block.items.map((i) => (
+					<li data-icon={block.marker === 'icon' ? i.icon || '•' : undefined}>{i.text}</li>
+				))}
+			</ul>
+		))
+}
+{
+	block._type === 'features' && (
+		<div class:list={['dz-block dz-features', `dz-features-${block.style}`, align]} style={`--dz-n:${block.columns}`}>
+			{block.items.map((item, i) => (
+				<div class="dz-feature">
+					{many[i] ? (
+						<img class="dz-feature__img" src={many[i]!.src} alt={many[i]!.alt} width={many[i]!.width} height={many[i]!.height} loading="lazy" decoding="async" />
+					) : (
+						item.icon && (
+							<span class="dz-feature__icon" aria-hidden="true">
+								{item.icon}
+							</span>
+						)
+					)}
+					<h3 class="dz-h dz-h-small">{href(item.link) ? <a href={href(item.link)}>{item.heading}</a> : item.heading}</h3>
+					{item.text && <p>{item.text}</p>}
+				</div>
+			))}
+		</div>
+	)
+}
+{
+	block._type === 'stats' && (
+		<div class:list={['dz-block dz-stats', align]} style={`--dz-n:${block.columns}`}>
+			{block.items.map((s) => (
+				<div class="dz-stat">
+					<strong>{s.value}</strong>
+					{s.label && <span>{s.label}</span>}
+				</div>
+			))}
+		</div>
+	)
+}
+{
+	block._type === 'quote' && (
+		<figure class:list={['dz-block dz-quote', `dz-quote-${block.style}`]}>
+			<blockquote>
+				<p>{block.text}</p>
+			</blockquote>
+			{(block.author || one) && (
+				<figcaption>
+					{one && <img src={one.src} alt={one.alt} width="48" height="48" loading="lazy" decoding="async" />}
+					<span>
+						{block.author && <strong>{block.author}</strong>}
+						{block.role && <small>{block.role}</small>}
+					</span>
+				</figcaption>
+			)}
+		</figure>
+	)
+}
+{
+	block._type === 'accordion' && (
+		<div class="dz-block dz-accordion">
+			{block.items.map((item, i) => (
+				<details open={block.open_first && i === 0}>
+					<summary>{item.question}</summary>
+					<div class="dz-text" set:html={md(item.answer)} />
+				</details>
+			))}
+		</div>
+	)
+}
+{
+	block._type === 'video' && videoEmbed(block.url) && (
+		<figure class="dz-block dz-video">
+			<iframe
+				src={videoEmbed(block.url)}
+				title={block.caption || 'Video'}
+				style={ratio(block.ratio) ?? 'aspect-ratio:16/9'}
+				loading="lazy"
+				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+				referrerpolicy="strict-origin-when-cross-origin"
+				allowfullscreen
+			/>
+			{block.caption && <figcaption>{block.caption}</figcaption>}
+		</figure>
+	)
+}
+{
+	block._type === 'map' && (
+		<div class="dz-block dz-map">
+			<iframe
+				src={`https://www.google.com/maps?q=${encodeURIComponent(block.query)}&z=${block.zoom}&output=embed`}
+				title={`Map: ${block.query}`}
+				style={`height:${block.height}px`}
+				loading="lazy"
+				referrerpolicy="no-referrer-when-downgrade"
+			/>
+		</div>
+	)
+}
+{block._type === 'form' && <Form block={block} id={id} endpoint={formEndpoint} />}
+{block._type === 'divider' && <hr class={`dz-block dz-divider dz-divider-${block.style}`} />}
+{block._type === 'spacer' && <div class={`dz-block dz-spacer dz-spacer-${block.size}`} aria-hidden="true" />}
+{
+	block._type === 'html' && (
+		<div class={`dz-block dz-html ${id}`}>
+			{block.custom_css && <style is:inline set:html={scopeCss(block.custom_css, `.${id}`)} />}
+			<Fragment set:html={sanitizeDesignHtml(block.custom_html)} />
+		</div>
+	)
+}

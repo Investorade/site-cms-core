@@ -64,6 +64,7 @@ export function readCmsConfig(root: string): Obj {
 	const pages = core('pages.yml') as Obj;
 	const posts = core('posts.yml') as Obj;
 	const settings = core('settings.yml') as Obj;
+	const designs = core('designs.yml') as Obj;
 	const siteConfig = (site('site.yml', true) ?? {}) as Obj;
 	const sections = site('sections.yml') ?? [];
 	const siteSettings = site('settings.yml') ?? [];
@@ -122,7 +123,15 @@ export function readCmsConfig(root: string): Obj {
 		...base,
 		backend: { ...(base.backend as Obj), ...siteBackend },
 		...siteTop,
-		collections: [...(profile.features.pages ? [pages] : []), ...(profile.features.blog ? [posts] : []), ...siteCollections, { divider: true }, settings],
+		collections: [
+			...(profile.features.pages ? [pages] : []),
+			...(profile.features.blog ? [posts] : []),
+			...siteCollections,
+			// Designs: free-design pages (any layout; header and footer optional), on sites that switch them on.
+			...(profile.features.designs ? [designs] : []),
+			{ divider: true },
+			settings,
+		],
 	};
 	return fillWording(config, wordingFor(root, profile)) as Obj;
 }
@@ -131,10 +140,10 @@ export function readCmsConfig(root: string): Obj {
 
 export type SiteType = 'park' | 'business' | 'medical';
 const SITE_TYPES: SiteType[] = ['park', 'business', 'medical'];
-const FEATURES = ['pages', 'blog', 'popups', 'ai_connector'] as const;
+const FEATURES = ['pages', 'blog', 'popups', 'ai_connector', 'designs'] as const;
 export interface SiteProfile {
 	site_type: SiteType;
-	features: { pages: boolean; blog: boolean; popups: boolean; ai_connector: boolean };
+	features: { pages: boolean; blog: boolean; popups: boolean; ai_connector: boolean; designs: boolean };
 	/** Where posts live: "/" (at the site root, /<post>/) or e.g. "/blog/" (/blog/<post>/). */
 	blog_path: string;
 	wording: Record<string, string>;
@@ -151,6 +160,7 @@ export interface SiteProfile {
  *     blog: true               # the Blog collection
  *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
  *     ai_connector: true       # Site settings → AI connector (it needs pages made of sections)
+ *     designs: true            # Designs: free-design pages (the site needs its designs collection and route: README)
  *   blog_path: /               # where posts live: / (/<post>/, the default) or e.g. /blog/ (/blog/<post>/)
  *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
  *     image_alt_example: "…"
@@ -182,6 +192,9 @@ export function readSiteProfile(root: string): SiteProfile {
 			// The AI connector: on unless switched off. Sites whose pages are content files (pages: false) switch it on
 			// themselves (ai_connector: true): the AI can change those pages' text and images, not add or delete pages.
 			ai_connector: pages ? features.ai_connector !== false : features.ai_connector === true,
+			// Designs: free-design pages. Switched on by the site (designs: true) once it has the designs collection and route
+			// (README), so updating the core never adds a CMS collection the site can't show.
+			designs: features.designs === true,
 		},
 		blog_path: blogPath,
 		wording: wording as Record<string, string>,

@@ -46,7 +46,7 @@ export interface PageReport {
     path: string;
     url: string;
     /** The CMS collection and entry this page is edited in, if any. */
-    collection?: 'pages' | 'posts';
+    collection?: 'pages' | 'posts' | 'designs';
     entry?: string;
     title: string;
     description: string;
@@ -59,7 +59,7 @@ export interface PageReport {
 }
 /** What the page's CMS file says (src/content/pages or src/content/posts). */
 export interface EntryInfo {
-    collection: 'pages' | 'posts';
+    collection: 'pages' | 'posts' | 'designs';
     entry: string;
     keywords: string[];
     excerpt?: string;

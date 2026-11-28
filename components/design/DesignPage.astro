@@ -1,0 +1,40 @@
+---
+/**
+ * A free-design page (CMS → Designs): its sections, top to bottom, inside the site's own layout. The site's designs
+ * route renders it, with or without the site's header and footer (the page's own switches):
+ *
+ *   <BaseLayout seo={design.data.seo} header={design.data.header} footer={design.data.footer}>
+ *     <DesignPage page={design.data} resolveImage={(src) => src} />
+ *   </BaseLayout>
+ *
+ * The look comes from the page's settings and the site's fonts and colours, which the site passes as CSS variables on
+ * a parent element (or :root): --design-accent, --design-accent-text, --design-heading, --design-text, --design-muted,
+ * --design-surface, --design-line, --design-font-heading, --design-font-body, --design-radius, --design-wrap. Any it
+ * leaves out fall back to neutral defaults (design.css).
+ *
+ * `resolveImage` turns an image's src as saved in the CMS into an address for <img> (sites whose media are Astro
+ * assets, "asset:…", pass their own). `formEndpoint`: where Form blocks send (the shared forms service).
+ */
+import './design.css';
+import Section from './Section.astro';
+import { scopeCss } from '../../dist/lib/design-css.js';
+import { safeColor, type DesignPageData } from '../../dist/design.js';
+
+interface Props {
+	page: Pick<DesignPageData, 'sections' | 'page' | 'title'>;
+	resolveImage?: (src: string) => string | Promise<string>;
+	formEndpoint?: string;
+}
+
+const { page, resolveImage = (src: string) => src, formEndpoint = 'https://forms.dadscampgrounds.com/submit' } = Astro.props;
+const style = [safeColor(page.page?.background) && `background:${safeColor(page.page.background)}`, safeColor(page.page?.text_color) && `color:${safeColor(page.page.text_color)}`]
+	.filter(Boolean)
+	.join(';');
+const pageCss = scopeCss(page.page?.custom_css, '.dz-page');
+const sections = page.sections.filter((s) => !s.hidden);
+---
+
+<div class="dz-page" style={style || undefined}>
+	{pageCss && <style is:inline set:html={pageCss} />}
+	{sections.map((section, i) => <Section section={section} index={i} resolveImage={resolveImage} formEndpoint={formEndpoint} />)}
+</div>

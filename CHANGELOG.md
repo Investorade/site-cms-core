@@ -1,5 +1,21 @@
 # Release notes
 
+## 1.6.0 (2026-11-28)
+
+Designs: free-design pages, for any layout, with or without the site's header and footer (PPC landing pages). Nothing
+changes on a site until it switches them on; Henderson's existing pages look the same.
+
+- `designs: true` in cms/features.yml adds the Designs collection (cms/designs.yml): sections → columns → blocks
+  (heading, text, image, gallery, buttons, card, list, features, numbers, quote, questions, video, map, form, divider,
+  space, custom HTML/CSS), page header/footer switches, SEO like pages. The site adds the collection and route once
+  (README, "Designs").
+- `@investorade/site-cms-core/design`: `createDesignSchema`, `designPath`; `components/design/DesignPage.astro` renders
+  a page in the site's fonts and colours (`--design-*` variables).
+- Custom HTML/CSS are cleaned at build (`sanitizeDesignHtml`, `lib/design-css`: no scripts, frames, forms, handlers,
+  @import or outside url()) and scoped to their own part.
+- `admin/content-rules.json` lists Designs for the AI connector; the one-address check and the SEO report include them.
+- Needs the CMS login from 2026-11-28 or later for the AI connector to create Designs pages.
+
 ## 1.5.0 (2026-11-26)
 
 The AI connector for sites whose pages are content files (the first is Injectco). Henderson's pages and CMS don't change.

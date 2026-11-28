@@ -24,6 +24,7 @@ export interface SiteProfile {
         blog: boolean;
         popups: boolean;
         ai_connector: boolean;
+        designs: boolean;
     };
     /** Where posts live: "/" (at the site root, /<post>/) or e.g. "/blog/" (/blog/<post>/). */
     blog_path: string;
@@ -40,6 +41,7 @@ export interface SiteProfile {
  *     blog: true               # the Blog collection
  *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
  *     ai_connector: true       # Site settings → AI connector (it needs pages made of sections)
+ *     designs: true            # Designs: free-design pages (the site needs its designs collection and route: README)
  *   blog_path: /               # where posts live: / (/<post>/, the default) or e.g. /blog/ (/blog/<post>/)
  *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
  *     image_alt_example: "…"

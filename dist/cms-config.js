@@ -43,6 +43,7 @@ export function readCmsConfig(root) {
     const pages = core('pages.yml');
     const posts = core('posts.yml');
     const settings = core('settings.yml');
+    const designs = core('designs.yml');
     const siteConfig = (site('site.yml', true) ?? {});
     const sections = site('sections.yml') ?? [];
     const siteSettings = site('settings.yml') ?? [];
@@ -108,12 +109,20 @@ export function readCmsConfig(root) {
         ...base,
         backend: { ...base.backend, ...siteBackend },
         ...siteTop,
-        collections: [...(profile.features.pages ? [pages] : []), ...(profile.features.blog ? [posts] : []), ...siteCollections, { divider: true }, settings],
+        collections: [
+            ...(profile.features.pages ? [pages] : []),
+            ...(profile.features.blog ? [posts] : []),
+            ...siteCollections,
+            // Designs: free-design pages (any layout; header and footer optional), on sites that switch them on.
+            ...(profile.features.designs ? [designs] : []),
+            { divider: true },
+            settings,
+        ],
     };
     return fillWording(config, wordingFor(root, profile));
 }
 const SITE_TYPES = ['park', 'business', 'medical'];
-const FEATURES = ['pages', 'blog', 'popups', 'ai_connector'];
+const FEATURES = ['pages', 'blog', 'popups', 'ai_connector', 'designs'];
 /**
  * The site's cms/features.yml: its type and which shared parts it uses. Without the file a site is a "business" site
  * with the blog and the AI connector and without pop-ups. (Sites made before 1.3.0 get the file from the 1.3.0
@@ -125,6 +134,7 @@ const FEATURES = ['pages', 'blog', 'popups', 'ai_connector'];
  *     blog: true               # the Blog collection
  *     popups: true             # Book Now / exit pop-ups: #book-now in link hints
  *     ai_connector: true       # Site settings → AI connector (it needs pages made of sections)
+ *     designs: true            # Designs: free-design pages (the site needs its designs collection and route: README)
  *   blog_path: /               # where posts live: / (/<post>/, the default) or e.g. /blog/ (/blog/<post>/)
  *   wording:                   # optional: replace any hint example from the core's cms/wording.yml
  *     image_alt_example: "…"
@@ -163,6 +173,9 @@ export function readSiteProfile(root) {
             // The AI connector: on unless switched off. Sites whose pages are content files (pages: false) switch it on
             // themselves (ai_connector: true): the AI can change those pages' text and images, not add or delete pages.
             ai_connector: pages ? features.ai_connector !== false : features.ai_connector === true,
+            // Designs: free-design pages. Switched on by the site (designs: true) once it has the designs collection and route
+            // (README), so updating the core never adds a CMS collection the site can't show.
+            designs: features.designs === true,
         },
         blog_path: blogPath,
         wording: wording,
